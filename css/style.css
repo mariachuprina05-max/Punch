@@ -1,0 +1,2648 @@
+/* ==========================================================================
+   PUNCH — landing
+   Block 01: HERO
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Fonts
+   -------------------------------------------------------------------------- */
+@font-face {
+  font-family: "Bootzy Condensed TM";
+  src: url("../assets/fonts/BootzyCondensedTM-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "High Speed";
+  src: url("../assets/fonts/HighSpeed.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* --------------------------------------------------------------------------
+   Design tokens (Figma: Colors + Text styles)
+   -------------------------------------------------------------------------- */
+:root {
+  /* Colors */
+  --c-brand:        #FFF714;   /* Brand main        */
+  --c-brand-second: #E04000;   /* Brand second main */
+  --c-bg:           #121212;   /* Bg_color          */
+  --c-black:        #000000;   /* Black             */
+  --c-white:        #FFFFFF;   /* White             */
+
+  /* Font families */
+  --ff-display: "Bootzy Condensed TM", "Haettenschweiler", "Arial Narrow", sans-serif;
+  --ff-text: "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  /* Shared metrics of the display style (Heading/Hero) */
+  --display-lh: 0.84;   /* lineHeight 0.84 */
+  --display-ls: 0.01em; /* letterSpacing 1% */
+
+  /* Hairlines */
+  --rule: 2px;
+
+  /* Single brand motion curve — same 4 control points as the GSAP
+     CustomEase("brandEase") registered in index.html, so CSS transitions
+     and GSAP tweens read as one system instead of mismatched defaults. */
+  --ease-brand: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* --------------------------------------------------------------------------
+   Reset / base
+   -------------------------------------------------------------------------- */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--ff-text);
+  color: var(--c-black);
+  background-color: var(--c-bg);
+}
+
+h1, p { margin: 0; }
+
+a { color: inherit; text-decoration: none; }
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+img, svg { display: block; max-width: 100%; }
+
+/* ==========================================================================
+   HERO
+   Mobile first (Figma mobile frame: 375 px wide)
+   ========================================================================== */
+.hero {
+  /* ---- fluid type scale ------------------------------------------------ */
+  /* Mobile/Heading/Hero — 130px @375 (34.667vw), capped so it stays sane
+     on wide phones / small tablets before the desktop layout kicks in      */
+  --fs-display: min(34.667vw, 10.5rem);
+
+  /* gap between the head-line rows: ~18px @130px */
+  --row-gap: calc(var(--fs-display) * 0.139);
+
+  /* Mobile/Body/Label   — 16px @375 (4.267vw)                              */
+  --fs-label: clamp(0.875rem, 4.267vw, 1.125rem);
+  /* Mobile/Links        — 16px @375                                        */
+  --fs-link: clamp(0.875rem, 4.267vw, 1.125rem);
+  /* Mobile/Body/Paragraph — 14px @375 (3.733vw)                            */
+  --fs-text: clamp(0.8125rem, 3.733vw, 1rem);
+  /* CTA — 24px @375 (6.4vw)                                                */
+  --fs-cta: clamp(1.25rem, 6.4vw, 1.75rem);
+
+  /* small optical nudge for the "( … )" markers next to the head-line      */
+  --tag-nudge: 0.375em;
+  --lead-nudge: 0.6em;
+
+  /* ---- layout ---------------------------------------------------------- */
+  /* all paddings are % of the section width → they scale with the viewport */
+  padding-inline: 6.4%;        /*  24px @375 */
+  padding-block: 5.6% 18.13%;  /*  21px / 68px @375 */
+
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+
+  /* pinned to the viewport so the About block below can scroll up and
+     over it, matching the same sticky-stack pattern used by .presvcs */
+  position: sticky;
+  top: 0;
+  z-index: 0;
+
+  background-color: var(--c-brand);
+  color: var(--c-black);
+
+  /* subtle RGB screen texture from the design (kept as a weightless CSS
+     pattern instead of the 17 MB PNG — tune or disable with --grain)       */
+  --grain: 0.014;
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 0, 255, var(--grain)) 0 3px,
+      rgba(0, 255, 0, var(--grain)) 3px 7px,
+      rgba(255, 0, 0, var(--grain)) 7px 10px,
+      rgba(0, 0, 0, 0)             10px 13px
+    );
+}
+
+/* --------------------------------------------------------------------------
+   Bottom fade — sits above the background illustration but below the text,
+   so the copy near the foot of the hero stays readable over the artwork
+   -------------------------------------------------------------------------- */
+.hero__gradient {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 30%;
+  background: linear-gradient(to bottom, rgba(255, 247, 20, 0) 0%, var(--c-brand) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* --------------------------------------------------------------------------
+   Top bar
+   -------------------------------------------------------------------------- */
+.hero__bar {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  align-items: center;
+  margin-block-end: 19.4%;  /* 63px @375 (% of the 327px content box) */
+}
+
+.hero__logo {
+  grid-column: 1 / 2;
+  inline-size: min(21.6vw, 5.0625rem);  /* 81px @375 */
+  color: var(--c-brand-second);
+}
+
+.hero__logo-mark {
+  inline-size: 100%;
+  block-size: auto;
+}
+
+.hero__menu {
+  grid-column: 2 / 3;
+  justify-self: end;
+  font-size: var(--fs-label);
+  line-height: 1.5;
+  letter-spacing: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Stage — one grid that holds the head-line and every satellite text,
+   so both layouts are re-arranged with placement only (no absolute).
+   -------------------------------------------------------------------------- */
+.hero__stage {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(4, auto) 1fr;
+  row-gap: var(--row-gap);
+}
+
+/* the <h1> only groups the words semantically — the words themselves are
+   the grid items */
+.hero__title { display: contents; }
+
+/* --------------------------------------------------------------------------
+   Head-line
+   -------------------------------------------------------------------------- */
+.hero__word {
+  font-family: var(--ff-display);
+  font-weight: 400;
+  font-size: var(--fs-display);
+  line-height: var(--display-lh);
+  letter-spacing: var(--display-ls);
+}
+
+.hero__word--marketing { grid-area: 1 / 1 / 2 / 3; }
+.hero__word--people    { grid-area: 2 / 1 / 3 / 3; justify-self: end; }
+.hero__word--actually  { grid-area: 3 / 1 / 4 / 3; justify-self: center; color: var(--c-brand-second); }
+.hero__word--notice    { grid-area: 4 / 1 / 5 / 3; justify-self: start; }
+
+/* --------------------------------------------------------------------------
+   "( … )" markers
+   -------------------------------------------------------------------------- */
+.hero__tag {
+  font-size: var(--fs-label);
+  line-height: 1.5;
+  padding-block-start: var(--tag-nudge);
+}
+
+.hero__tag--agency {
+  grid-area: 2 / 1 / 3 / 2;
+  align-self: start;
+}
+
+.hero__tag--year { display: none; }
+
+/* --------------------------------------------------------------------------
+   Lead paragraphs (justified, as in the design)
+   -------------------------------------------------------------------------- */
+.hero__lead {
+  font-size: var(--fs-text);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  text-align: justify;
+  text-align-last: left;
+  hyphens: none;
+}
+
+.hero__lead--left {
+  grid-area: 2 / 1 / 3 / 2;
+  align-self: end;
+  inline-size: 66%;
+}
+
+.hero__lead--right {
+  grid-area: 4 / 2 / 5 / 3;
+  justify-self: end;
+  align-self: start;
+  inline-size: 68%;
+  padding-block-start: var(--lead-nudge, 0em);
+}
+
+.hero__scroll { display: none; }
+
+/* --------------------------------------------------------------------------
+   CTA
+   -------------------------------------------------------------------------- */
+.hero__call {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.67em;
+  font-size: var(--fs-cta);
+  line-height: 1.2;
+  padding-block-end: 0.2em;
+  border-block-end: var(--rule) solid currentColor;
+  transition: color 0.25s ease, border-color 0.25s ease;
+}
+
+.hero__call--wide {
+  grid-area: 5 / 1 / 6 / 3;
+  align-self: end;
+}
+
+.hero__call .icon-arrow {
+  inline-size: 1.1em;
+  block-size: auto;
+  flex: none;
+}
+
+/* elements that belong to the desktop bar only */
+.hero__nav,
+.hero__social,
+.hero__call--bar { display: none; }
+
+/* interactive states */
+.hero__call:hover,
+.hero__call:focus-visible,
+.hero__nav-link:hover,
+.hero__nav-link:focus-visible,
+.hero__social:hover,
+.hero__social:focus-visible,
+.hero__scroll:hover,
+.hero__scroll:focus-visible,
+.hero__menu:hover,
+.hero__menu:focus-visible { color: var(--c-brand-second); }
+
+.hero__logo:hover,
+.hero__logo:focus-visible { color: var(--c-black); }
+
+/* ==========================================================================
+   DESKTOP  (Figma desktop frame: 1440 px wide)
+   ========================================================================== */
+@media (min-width: 1024px) {
+  .hero {
+    /* Desktop/Heading/Hero — 230px @1440 (15.972vw) */
+    /* caps at ~256px so the hero still fits a 16:9 desktop viewport */
+    --fs-display: clamp(4rem, 15.972vw, 16rem);
+    /* gap between head-line rows: ~17px @230px */
+    --row-gap: calc(var(--fs-display) * 0.073);
+
+    /* Desktop/Body/Small     — 14px @1440 (0.972vw) */
+    --fs-label: clamp(0.75rem, 0.972vw, 1rem);
+    /* Desktop/Links/Header   — 16px @1440 (1.111vw) */
+    --fs-link: clamp(0.875rem, 1.111vw, 1.125rem);
+    /* Desktop/Body/Paragraph — 18px @1440 (1.25vw)  */
+    --fs-text: clamp(0.9375rem, 1.25vw, 1.25rem);
+    --fs-cta: var(--fs-link);
+
+    --grain: 0.01;
+    --tag-nudge: 0.9em;
+    --lead-nudge: 0em;
+
+    padding-inline: 3.472%;      /*  50px @1440 */
+    padding-block: 2.43% 7.9%;   /*  35px / 114px @1440 */
+
+    /* Halftone hands — a background layer, so the artwork stays behind the
+       type without a single absolutely positioned element.
+
+       ⚠ TODO: assets/img/main-illustration.png (the file from /Photos) is a
+       DIFFERENT version than the one used in the Figma hero: in the export
+       one hand sits high-right and the other low-left, while the design has
+       both hands at the same height. Placement below is the closest match
+       that file allows. Swap the file and re-check the three values below
+       once the correct export is available — nothing else has to change.
+
+       Size / offset are expressed in vw, so the artwork scales with the
+       viewport exactly like the rest of the block.                          */
+    background-image:
+      url("../assets/img/main-illustration.png"),
+      repeating-linear-gradient(
+        90deg,
+        rgba(0, 0, 255, var(--grain)) 0 3px,
+        rgba(0, 255, 0, var(--grain)) 3px 7px,
+        rgba(255, 0, 0, var(--grain)) 7px 10px,
+        rgba(0, 0, 0, 0)             10px 13px
+      );
+    background-repeat: no-repeat, repeat;
+    background-size: 98.26vw auto, auto;
+    background-position: 0.04vw -1.77vw, 0 0;
+    background-blend-mode: multiply, normal;
+  }
+
+  /* ---- 8-column grid, gutter 20px @1440 (1.493%) ---------------------- */
+  .hero__bar,
+  .hero__stage {
+    grid-template-columns: repeat(8, 1fr);
+    column-gap: 1.493%;
+  }
+
+  .hero__bar {
+    align-items: baseline;
+    margin-block-end: 3.66%;  /* 49px @1440 (% of the 1340px content box) */
+  }
+
+  .hero__logo {
+    inline-size: clamp(3.5rem, 5.625vw, 7rem);  /* 81px @1440 */
+    align-self: center;
+  }
+
+  .hero__nav {
+    display: flex;
+    grid-column: 3 / 6;
+    gap: 1.375em;             /* 22px @16px */
+  }
+
+  .hero__nav-link,
+  .hero__social {
+    font-size: var(--fs-link);
+    font-weight: 500;         /* Helvetica Neue Medium */
+    line-height: 1.5;
+    white-space: nowrap;
+  }
+
+  .hero__social {
+    display: block;
+    grid-column: 6 / 8;
+    justify-self: start;
+  }
+
+  .hero__call--bar {
+    display: flex;
+    white-space: nowrap;
+    grid-column: 8 / 9;
+    justify-self: end;
+    font-weight: 500;
+    padding-block-end: 0;
+    gap: 0.69em;
+  }
+
+  .hero__menu,
+  .hero__call--wide { display: none; }
+
+  /* ---- stage rows ------------------------------------------------------ */
+  .hero__stage { grid-template-rows: auto auto auto 1fr; }
+
+  .hero__word--marketing { grid-area: 1 / 1 / 2 / 6; justify-self: start; }
+  .hero__word--people    { grid-area: 1 / 6 / 2 / 9; justify-self: start; }
+
+  /* rows 2 and 3 span the full width and are indented in % of the content
+     box, so the ragged shape of the head-line scales with the viewport */
+  .hero__word--actually {
+    grid-area: 2 / 1 / 3 / 9;
+    justify-self: stretch;
+    padding-inline-start: 36.34%;
+  }
+
+  .hero__word--notice {
+    grid-area: 3 / 1 / 4 / 9;
+    justify-self: stretch;
+    padding-inline-start: 25.52%;
+  }
+
+  .hero__tag--agency { grid-area: 2 / 1 / 3 / 2; }
+
+  .hero__tag--year {
+    display: block;
+    grid-area: 1 / 8 / 2 / 9;
+    justify-self: end;
+    align-self: start;
+  }
+
+  /* ---- bottom row: bottom-aligned, as in the design -------------------- */
+  .hero__lead--left,
+  .hero__lead--right,
+  .hero__scroll { margin-block-start: calc(var(--row-gap) * -1); }
+
+  .hero__lead--left {
+    grid-area: 4 / 1 / 5 / 2;
+    align-self: end;
+    inline-size: 100%;        /* exactly one column — 150px @1440 */
+  }
+
+  .hero__lead--right {
+    grid-area: 4 / 6 / 5 / 9;
+    justify-self: start;
+    align-self: end;
+    inline-size: 58.6%;       /* 287px @1440 */
+  }
+
+  .hero__scroll {
+    display: block;
+    grid-area: 4 / 8 / 5 / 9;
+    justify-self: end;
+    align-self: end;
+    font-size: var(--fs-link);
+    line-height: 1.5;
+  }
+}
+
+/* ==========================================================================
+   ABOUT
+   Block 02
+   Mobile first (Figma mobile: 375 px wide)
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Design tokens local to About
+   -------------------------------------------------------------------------- */
+.about {
+  /* Display size — 56px @375 (14.933vw) */
+  --about-fs-display: min(14.933vw, 9.375rem); /* 9.375rem = 150px desktop cap */
+  /* Body sizes */
+  --about-fs-xl:  clamp(3.125rem,  8.533vw, 6.25rem);   /* 50px mob → 100px desk */
+  --about-fs-body: clamp(0.875rem, 3.733vw, 1.125rem);  /* 14px mob → 18px desk  */
+  --about-fs-label: clamp(0.625rem, 2.667vw, 1.125rem); /* 10px mob → 18px desk  */
+  --about-ls-display: 0.02em;   /* 2% letter-spacing on Bootzy */
+}
+
+/* --------------------------------------------------------------------------
+   Section shell
+   -------------------------------------------------------------------------- */
+.about {
+  position: relative;
+  overflow: hidden;
+  border-radius: 50px 50px 0 0;
+  background-color: var(--c-bg);
+  color: var(--c-white);
+  padding-inline: 6.4%;            /* 24px @375  */
+  padding-block: 16% 10.67%;       /* 60px / 40px @375 */
+}
+
+/* --------------------------------------------------------------------------
+   Background texture via ::before
+   Mobile: halftone offset top-left at 16% opacity
+   Desktop: full-cover overlay
+   -------------------------------------------------------------------------- */
+.about::before {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  /* mobile — 605×605px halftone, shifted left like Figma */
+  width: 605px;
+  height: 605px;
+  left: -103px;
+  top: 12px;
+  background: url('../assets/img/about-texture-mobile.png') center / contain no-repeat;
+  opacity: 0.16;
+  z-index: 0;
+}
+
+@media (min-width: 1024px) {
+  .about::before {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: url('../assets/img/about-texture.png') center / cover no-repeat;
+    mix-blend-mode: overlay;
+    opacity: 1;
+  }
+}
+
+.about__gradient {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 37.07%;          /* ~139px on mobile */
+  background: linear-gradient(to bottom, rgba(18,18,18,0) 0%, #121212 88.942%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* --------------------------------------------------------------------------
+   Body container
+   -------------------------------------------------------------------------- */
+.about__body {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 10.67vw;            /* ~40px @375 */
+}
+
+/* --------------------------------------------------------------------------
+   Headline
+   -------------------------------------------------------------------------- */
+.about__headline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Row 1 (mobile): contains the "(ABOUT)" label overlaid on the grid,
+   "MOST MARKETING" right-aligned, subtitle hidden on mobile */
+.about__row1 {
+  display: grid;
+  grid-template-columns: 20% 1fr;
+  align-items: start;
+}
+
+.about__label {
+  font-family: var(--ff-text);
+  font-size: var(--about-fs-label);
+  line-height: 1.1;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  grid-column: 1;
+  padding-top: 0.3em;
+}
+
+.about__h1-line1 {
+  font-family: var(--ff-display);
+  font-weight: 400;
+  font-size: var(--about-fs-display);
+  line-height: var(--display-lh);
+  letter-spacing: var(--about-ls-display);
+  text-transform: uppercase;
+  color: var(--c-white);
+  grid-column: 1 / -1;    /* mobile: full width */
+  text-align: right;
+  padding-inline-start: 20.18%;  /* push clear of the label on mobile */
+}
+
+.about__h1-line2 {
+  font-family: var(--ff-display);
+  font-weight: 400;
+  font-size: var(--about-fs-display);
+  line-height: var(--display-lh);
+  letter-spacing: var(--about-ls-display);
+  text-transform: uppercase;
+  color: var(--c-white);
+}
+
+/* subtitle — hidden on mobile, shown desktop */
+.about__subtitle { display: none; }
+
+.about__accent { color: var(--c-brand); }
+
+/* --------------------------------------------------------------------------
+   Content row (paragraph + brand tag)
+   -------------------------------------------------------------------------- */
+.about__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
+}
+
+.about__para {
+  font-family: var(--ff-text);
+  font-size: var(--about-fs-body);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  text-align: justify;
+  text-align-last: left;
+  padding-inline-start: 17.7%;  /* 58px / 327px content ≈ 17.7% */
+  padding-inline-end: 12.2%;    /* 40px */
+}
+
+.about__brand-tag {
+  display: none;   /* hidden on mobile */
+}
+
+/* --------------------------------------------------------------------------
+   Stats
+   -------------------------------------------------------------------------- */
+.about__stats {
+  display: flex;
+  flex-direction: column;
+  gap: 6.13vw;              /* ~23px @375 */
+  padding-inline-start: 7.7%;  /* 29px / 375 */
+}
+
+.about__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.333em;
+}
+
+.about__stat-num {
+  font-family: var(--ff-text);
+  font-weight: 700;
+  font-size: var(--about-fs-xl);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--c-white);
+}
+
+.about__stat-num--accent { color: var(--c-brand-second); }
+
+.about__stat-label {
+  font-family: var(--ff-text);
+  font-size: var(--about-fs-body);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--c-white);
+}
+
+/* $120M+ row — brackets + number */
+.about__stat-money {
+  display: flex;
+  align-items: center;
+  gap: 0.11em;
+}
+
+.about__bracket {
+  height: var(--about-fs-xl);
+  width: auto;
+  flex: none;
+}
+
+/* both bracket SVGs ship with the same orientation; mirror the left one */
+.about__bracket--left { transform: scaleX(-1); }
+
+/* ==========================================================================
+   ABOUT — DESKTOP  ≥ 1024 px
+   ========================================================================== */
+@media (min-width: 1024px) {
+  .about {
+    padding-inline: 3.472%;       /* 50px @1440 */
+    padding-block: 6.944% 6.944%; /* 100px @1440 */
+  }
+
+  .about__body { gap: 6.944vw; } /* 100px @1440 */
+
+  /* ---- headline layout ---- */
+  .about__headline { gap: 0; }
+
+  .about__row1 {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    height: 7.5vw;           /* 108px @1440 */
+  }
+
+  .about__label {
+    font-size: var(--about-fs-label);
+    flex: none;
+  }
+
+  .about__h1-line1 {
+    font-size: var(--about-fs-display);
+    text-align: left;
+    padding-inline-start: 0;
+    flex: none;
+    width: 41.5%;            /* 556px / 1340px content */
+    display: flex;
+    align-items: center;
+  }
+
+  .about__subtitle {
+    display: block;
+    font-family: var(--ff-text);
+    font-size: var(--about-fs-body);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    text-align: justify;
+    text-align-last: left;
+    width: 13.96%;           /* 187px / 1340px content */
+    flex: none;
+  }
+
+  .about__h1-line2 {
+    font-size: var(--about-fs-display);
+    height: 7.5vw;           /* 108px @1440 */
+    display: flex;
+    align-items: center;
+  }
+
+  /* ---- content row: indent + row layout ---- */
+  .about__content {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-inline-start: 25.37%;  /* 340px / 1340px content */
+  }
+
+  .about__para {
+    padding: 0;
+    width: 36.49%;           /* 489px / 1340px content */
+    text-align: justify;
+  }
+
+  .about__brand-tag {
+    display: block;
+    font-family: var(--ff-text);
+    font-size: var(--about-fs-label);
+    line-height: 1.1;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  /* ---- stats: indent + row layout ---- */
+  .about__stats {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-inline-start: 25.37%;  /* 340px / 1340px content */
+    gap: 0;
+  }
+
+  .about__stat-num {
+    font-size: var(--about-fs-xl);
+  }
+
+  .about__stat--center {
+    align-items: flex-start;
+  }
+}
+
+/* ==========================================================================
+   APPROACH — Block 03
+   All sizing in rem / em / %  (no vw, no fixed px for layout)
+   ========================================================================== */
+
+.approach {
+  position: relative;
+  overflow: hidden;              /* clips texture, keeps section screen-wide */
+  background-color: var(--c-bg);
+  color: var(--c-white);
+  padding-inline: 6.4%;         /* % of own width → scales with screen */
+  padding-block: 2.5rem 3.75rem; /* 40px / 60px */
+}
+
+/* RGB texture — contained fully inside the section */
+.approach::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('../assets/img/approach-texture.png') center / cover no-repeat;
+  mix-blend-mode: overlay;
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* gradient bars */
+.approach__grad {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  pointer-events: none;
+  z-index: 1;
+  background: linear-gradient(to bottom, rgba(18,18,18,0) 0%, #121212 88.942%);
+}
+
+.approach__grad--top {
+  top: 0;
+  height: 9rem;           /* ~139px */
+  transform: scaleY(-1);  /* flip → dark at top */
+}
+
+.approach__grad--bottom {
+  bottom: 0;
+  height: 9rem;
+}
+
+/* --------------------------------------------------------------------------
+   Body
+   -------------------------------------------------------------------------- */
+.approach__body {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* --------------------------------------------------------------------------
+   Headline
+   -------------------------------------------------------------------------- */
+.approach__head {
+  display: flex;
+  flex-direction: column;
+}
+
+.approach__head-r1,
+.approach__head-r2 { display: flex; flex-direction: column; }
+
+.approach__label {
+  font-family: var(--ff-text);
+  font-size: 0.625rem;   /* 10px mobile */
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.approach__acc { color: var(--c-brand); }
+
+.approach__h1 {
+  font-family: var(--ff-display);
+  font-weight: 400;
+  font-size: 3.5rem;     /* 56px mobile */
+  line-height: var(--display-lh);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.approach__h1--white  { color: var(--c-white); }
+.approach__h1--yellow { color: var(--c-brand); }
+
+.approach__desc { display: none; } /* desktop only */
+
+/* --------------------------------------------------------------------------
+   Cards container
+   Mobile: 323/205 ratio, nearly full content width
+   -------------------------------------------------------------------------- */
+.approach__cards {
+  position: relative;
+  overflow: visible;        /* lets rotated cards peek at edges */
+  width: 99%;              /* ≈ 323px of 327px content @375 */
+  aspect-ratio: 323.646 / 205.843;
+  margin: 4rem auto 0;     /* push below headline text */
+}
+
+/* --------------------------------------------------------------------------
+   Card wrappers — position: absolute, rotated
+   Positions expressed as % of their container
+   (left = % of container width, top = % of container height)
+   -------------------------------------------------------------------------- */
+.approach__cw {
+  position: absolute;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.approach__cw--dragging { cursor: grabbing; }
+
+/* Mobile positions — % of 323.646 × 205.843 container */
+.approach__cw--1 { left: 13.14%;  top: -31.27%; transform: rotate( 2.67deg); }
+.approach__cw--2 { left: 47.43%;  top: -32.73%; transform: rotate(-2.70deg); }
+.approach__cw--3 { left: -0.65%;  top:  13.32%; transform: rotate(-3.64deg); }
+.approach__cw--4 { left: 31.87%;  top:  16.51%; transform: rotate( 2.27deg); }
+.approach__cw--5 { left: 63.72%;  top:  13.88%; transform: rotate(-4.12deg); }
+
+/* --------------------------------------------------------------------------
+   Card — mobile size via % of container + aspect-ratio
+   116/323.646 ≈ 35.84% wide; aspect-ratio 116:110
+   -------------------------------------------------------------------------- */
+.approach__card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  width: 35.84%;
+  aspect-ratio: 116 / 110;
+  border-radius: 0.375rem;   /* 6px */
+  padding: 0.625rem 0.375rem; /* 10px 6px */
+}
+
+.approach__card--yellow {
+  background: var(--c-brand);
+  color: var(--c-black);
+  box-shadow: 0.1875rem 0.125rem 0.9688rem rgba(224,64,0,0.3);
+}
+
+.approach__card--orange {
+  background: var(--c-brand-second);
+  color: var(--c-white);
+}
+
+.approach__card-num {
+  font-family: "High Speed", monospace;
+  font-size: 1rem;        /* 16px mobile */
+  line-height: 1;
+  opacity: 0.39;
+  display: block;
+  align-self: flex-start;
+}
+
+.approach__card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.approach__card-title {
+  font-family: var(--ff-text);
+  font-weight: 700;
+  font-size: 0.75rem;     /* 12px mobile */
+  line-height: 1;
+  letter-spacing: -0.06em;
+  text-transform: uppercase;
+}
+
+.approach__card-text {
+  font-family: var(--ff-text);
+  font-size: 0.5rem;      /* 8px mobile */
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+/* ==========================================================================
+   APPROACH — DESKTOP ≥ 1024 px
+   ========================================================================== */
+@media (min-width: 1024px) {
+  .approach {
+    padding-block: 6.25rem;   /* 100px */
+    overflow: hidden;
+  }
+
+  .approach::before { opacity: 0.5; }
+
+  .approach__grad--top    { height: 15.0625rem; }  /* 241px */
+  .approach__grad--bottom { height: 11.4375rem; }  /* 183px */
+
+  .approach__body { gap: 3.625rem; } /* 58px */
+
+  /* ---- headline: two side-by-side rows ---- */
+  .approach__head-r1,
+  .approach__head-r2 {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 6.75rem;  /* 108px */
+    padding-inline-end: 6.5rem; /* 104px */
+  }
+
+  .approach__head-r2 {
+    padding-inline-end: 0;
+    align-items: flex-end;
+  }
+
+  .approach__label {
+    font-size: 1.125rem;  /* 18px */
+    flex: none;
+    align-self: flex-start;
+  }
+
+  .approach__h1 {
+    font-size: 9.375rem;  /* 150px */
+    flex: none;
+  }
+
+  .approach__desc {
+    display: block;
+    font-family: var(--ff-text);
+    font-size: 1.125rem;   /* 18px */
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    text-align: justify;
+    text-align-last: left;
+    width: 15.25rem;       /* 244px */
+    flex: none;
+    align-self: flex-end;
+  }
+
+  /* ---- cards container: 1036/657 ratio, 77.3% of content ---- */
+  .approach__cards {
+    width: 77.3%;
+    aspect-ratio: 1036 / 657;
+    margin: 0 auto;
+  }
+
+  /* Desktop positions — % of 1036 × 657 container */
+  .approach__cw--1 { left: 14.77%; top:  1.07%; transform: rotate( 2.67deg); }
+  .approach__cw--2 { left: 46.14%; top:  0%;    transform: rotate(-2.70deg); }
+  .approach__cw--3 { left:  0.39%; top: 44.90%; transform: rotate(-3.64deg); }
+  .approach__cw--4 { left: 32.91%; top: 47.79%; transform: rotate( 2.27deg); }
+  .approach__cw--5 { left: 64.57%; top: 45.51%; transform: rotate(-4.12deg); }
+
+  /* Desktop card: 340/1036 ≈ 32.82% wide, aspect-ratio 340:330 */
+  .approach__card {
+    width: 32.82%;
+    min-width: 21.25rem;       /* 340px floor */
+    aspect-ratio: 340 / 330;
+    border-radius: 1.25rem;    /* 20px */
+    padding: 1.875rem 1.25rem; /* 30px 20px */
+  }
+
+  .approach__card-num   { font-size: 3.125rem; }  /* 50px */
+  .approach__card-title { font-size: 2.5rem; }    /* 40px */
+  .approach__card-text  { font-size: 1.125rem; }  /* 18px */
+  .approach__card-body  { gap: 0.75rem; }
+}
+
+/* --------------------------------------------------------------------------
+   SplitText line-reveal mask — GSAP's `linesClass` wraps every split line
+   in one of these; clipping it is what makes the line slide up from
+   underneath instead of visibly sliding in from below the heading.
+   -------------------------------------------------------------------------- */
+.line { overflow: hidden; }
+
+/* --------------------------------------------------------------------------
+   Motion preferences
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0.01ms !important; }
+}
+
+/* ==========================================================================
+   BLOCK 04: PRE-SERVICES — "Three ways we help brands / (STAND OUT)"
+   Desktop Figma node 8119:295  (1440 × 900)
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Section shell — mobile-first
+   -------------------------------------------------------------------------- */
+.presvcs {
+  position: sticky;
+  top: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: var(--c-brand);
+  padding-inline: 6%;
+  padding-block: 4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* RGB texture — same treatment as About / Approach */
+.presvcs::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('../assets/img/approach-texture.png') center / cover no-repeat;
+  mix-blend-mode: overlay;
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Content block
+   -------------------------------------------------------------------------- */
+.presvcs__body {
+  position: relative;
+  z-index: 1;
+}
+
+/* "THREE WAYS WE HELP BRANDS" */
+.presvcs__title {
+  font-family: var(--ff-display);
+  /* 150 px @ 1440 px → 10.42 vw, floored at 2.25 rem on tiny screens */
+  font-size: clamp(2.25rem, 10.42vw, 9.375rem);
+  line-height: var(--display-lh);
+  letter-spacing: 0.02em;
+  color: var(--c-black);
+  text-transform: uppercase;
+  white-space: nowrap;
+  margin: 0 0 0.15em;
+}
+
+/* "( STAND OUT )" row */
+.presvcs__standout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  /* gives the brackets' em-based height (below) something to scale
+     against — matches .presvcs__standout-text's own font-size */
+  font-size: clamp(2.25rem, 10.42vw, 9.375rem);
+}
+
+.presvcs__standout-text {
+  font-family: var(--ff-display);
+  font-size: clamp(2.25rem, 10.42vw, 9.375rem);
+  line-height: var(--display-lh);
+  letter-spacing: 0.02em;
+  color: var(--c-brand-second);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Bracket SVGs — scale with font, oversized on purpose to stand out from the text */
+.presvcs__bracket {
+  height: 2.1em;
+  width: auto;
+  display: block;
+  flex-shrink: 0;
+}
+
+/* Both SVG files have the same paths; mirror one for the left bracket */
+.presvcs__bracket--l { transform: scaleX(-1); }
+
+/* --------------------------------------------------------------------------
+   Halftone fist illustrations — absolute, flanking the sides
+   -------------------------------------------------------------------------- */
+.presvcs__fist {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  height: auto;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Mobile: flanking the headline on the left and right edges */
+.presvcs__fist--l {
+  left: -10%;
+  width: 48%;
+}
+
+.presvcs__fist--r {
+  right: -10%;
+  width: 46%;
+}
+
+/* ==========================================================================
+   PRE-SERVICES — DESKTOP ≥ 1024 px
+   ========================================================================== */
+@media (min-width: 1024px) {
+  .presvcs {
+    padding: 0;
+    /* height tracks width: 900 / 1440 = 62.5 % */
+    aspect-ratio: 8 / 5;
+  }
+
+  .presvcs__standout {
+    gap: 0.12em;   /* ~18 px at 150 px font */
+  }
+
+  /* Flanking the headline on the sides, vertically centered on the section */
+  .presvcs__fist--l {
+    left:   -4%;
+    width:  30%;
+    right:  auto;
+  }
+
+  .presvcs__fist--r {
+    right:  -4%;
+    width:  28%;
+    left:   auto;
+  }
+}
+
+/* ==========================================================================
+   BLOCK 05: SERVICES — sticky stacking cards
+   Desktop Figma node 8119:6174 (1440 × 2120), Mobile node 7948:21828
+   ========================================================================== */
+.svc-stack {
+  position: relative;
+}
+
+/* --------------------------------------------------------------------------
+   Card shell — position: sticky, offset grows by PEEK per card so the
+   previous card always leaves a visible strip above the next one
+   -------------------------------------------------------------------------- */
+.svc-card {
+  --peek: 30px;              /* mobile overlap, from the mobile frame's card spacing */
+  position: sticky;
+  top: calc(var(--i) * var(--peek));
+  overflow: hidden;
+  border-radius: 2rem 2rem 0 0;
+  padding: 3.75rem 6.4% 5rem;   /* 60px / 80px @375, sides 24px */
+  min-height: 30rem;
+}
+
+.svc-card--1 { --i: 0; z-index: 1; }
+.svc-card--2 { --i: 1; z-index: 2; }
+.svc-card--3 { --i: 2; z-index: 3; }
+
+.svc-card--dark   { background: var(--c-bg);           color: var(--c-white); }
+.svc-card--orange { background: var(--c-brand-second); color: var(--c-white); }
+.svc-card--yellow { background: var(--c-brand);         color: var(--c-black); }
+
+.svc-card__texture {
+  position: absolute;
+  inset: 0;
+  background: url('../assets/img/approach-texture.png') center / cover no-repeat;
+  mix-blend-mode: overlay;
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.svc-card--orange .svc-card__texture { opacity: 0.1; }
+
+/* --------------------------------------------------------------------------
+   Content row — column (text, then photo) on mobile, row on desktop
+   -------------------------------------------------------------------------- */
+.svc-card__row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.svc-card__col {
+  display: flex;
+  flex-direction: column;
+}
+
+/* mobile order: number → title → description → tags */
+.svc-card__num   { order: 1; }
+.svc-card__title { order: 2; margin-top: 0.625rem; }
+.svc-card__desc  { order: 3; margin-top: 0.625rem; }
+.svc-card__tags  { order: 4; margin-top: 1.125rem; }
+
+.svc-card__num {
+  font-family: "High Speed", monospace;
+  font-size: 1.625rem;   /* 26px */
+  line-height: 1;
+  opacity: 0.39;
+}
+
+.svc-card__tags {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.svc-card__tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.svc-card__tag {
+  background: rgba(255,255,255,0.1);
+  border-radius: 7px;
+  padding: 0.25rem 0.5rem;
+  font-family: var(--ff-text);
+  font-size: clamp(0.875rem, 3.7vw, 1.125rem);
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.svc-card--yellow .svc-card__tag { background: rgba(192,172,90,0.2); }
+
+.svc-card__desc {
+  font-family: var(--ff-text);
+  font-size: clamp(0.875rem, 3.7vw, 1.125rem);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  opacity: 0.6;
+  text-align: justify;
+  text-align-last: left;
+}
+
+.svc-card__title {
+  font-family: var(--ff-display);
+  font-weight: 400;
+  font-size: clamp(2.25rem, 10.42vw, 9.375rem);
+  line-height: var(--display-lh);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.svc-card__divider {
+  order: 5;
+  border-radius: 1.25rem;   /* 20px mobile */
+  overflow: hidden;
+  aspect-ratio: 327 / 215;
+}
+
+.svc-card__divider img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ==========================================================================
+   SERVICES — DESKTOP ≥ 1024 px
+   ========================================================================== */
+@media (min-width: 1024px) {
+  .svc-card {
+    --peek: 50px;           /* desktop overlap, from the Figma spec */
+    border-radius: 3.125rem 3.125rem 0 0;   /* 50px */
+    padding: 5rem 3.472% 7.5rem;            /* 80px / 120px, sides 50px */
+    min-height: 46rem;
+  }
+
+  .svc-card__row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 3.75rem;
+  }
+
+  .svc-card__col {
+    width: 42.36%;   /* 610 / 1440 */
+  }
+
+  /* desktop order: number → tags → description → title */
+  .svc-card__num   { order: 1; margin-top: 0; }
+  .svc-card__tags  { order: 2; margin-top: 2.5rem;   } /* 40px */
+  .svc-card__desc  { order: 3; margin-top: 8.6875rem; width: 79.7%; } /* 139px gap, 440/552 */
+  .svc-card__title { order: 4; margin-top: 1rem; }     /* 16px */
+
+  .svc-card__num  { font-size: 3.125rem; }  /* 50px */
+  .svc-card__tags { gap: 0.75rem; }
+  .svc-card__tag-row { gap: 0.75rem; }
+
+  .svc-card__divider {
+    order: 5;
+    flex: none;
+    align-self: stretch;
+    width: 33.96%;    /* 489 / 1440 */
+    aspect-ratio: auto;
+    border-radius: 1.875rem;   /* 30px */
+  }
+}
+
+/* ==========================================================================
+   BLOCK 06: CTA
+   Desktop Figma node 8119:6178 (1440 × 900), Mobile node 7967:204
+   ========================================================================== */
+.cta {
+  position: relative;
+  overflow: hidden;
+  background: var(--c-bg);
+  color: var(--c-white);
+  padding: 4rem 6.4% 5rem;
+}
+
+.cta__texture {
+  position: absolute;
+  inset: 0;
+  background: url('../assets/img/approach-texture.png') center / cover no-repeat;
+  mix-blend-mode: overlay;
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cta__body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3.5rem;
+}
+
+/* --------------------------------------------------------------------------
+   Headline — mobile: stacked (h1, h1, desc); desktop: row1 (h1 + desc),
+   row2 (indented second h1 line) via flex order
+   -------------------------------------------------------------------------- */
+.cta__head {
+  display: flex;
+  flex-direction: column;
+}
+
+.cta__h1 {
+  font-family: var(--ff-display);
+  font-weight: 400;
+  font-size: clamp(2.25rem, 10.42vw, 9.375rem);
+  line-height: var(--display-lh);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--c-white);
+}
+
+.cta__accent { color: var(--c-brand); }
+
+.cta__desc {
+  order: 3;
+  margin-top: 1.5rem;
+  font-family: var(--ff-text);
+  font-size: clamp(0.875rem, 3.7vw, 1.125rem);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  opacity: 0.6;
+  text-align: justify;
+  text-align-last: left;
+}
+
+/* --------------------------------------------------------------------------
+   Button + pointing hand
+   -------------------------------------------------------------------------- */
+.cta__action {
+  position: relative;
+  display: inline-flex;
+}
+
+.cta__hand {
+  position: absolute;
+  pointer-events: none;
+  left: -11.9375rem;   /* -191px, measured against the button */
+  top: 0;
+  width: 10.5625rem;   /* 169px */
+  height: auto;
+  z-index: 0;
+}
+
+.cta__btn {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-family: var(--ff-text);
+  font-weight: 700;
+  font-size: 1.125rem;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+.cta__btn span { color: var(--c-white); }
+
+.cta__btn-bracket {
+  height: 1.8em;
+  width: auto;
+  flex: none;
+}
+
+/* Both SVG files share the same path; mirror the left one */
+.cta__btn-bracket--l { transform: scaleX(-1); }
+
+/* ==========================================================================
+   CTA — DESKTOP ≥ 1024 px
+   ========================================================================== */
+@media (min-width: 1024px) {
+  .cta {
+    padding: 0;
+    aspect-ratio: 8 / 5;   /* 900 / 1440 */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .cta__body {
+    padding-inline: 3.472%;   /* 50px @1440 */
+    gap: 3.75rem;
+  }
+
+  .cta__head {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .cta__h1 { order: 1; flex: none; white-space: nowrap; }
+
+  .cta__h1--indent {
+    order: 3;
+    flex: 0 0 100%;
+    margin-top: 1rem;
+    padding-inline-start: 28.6%;   /* 383 / 1341 */
+  }
+
+  .cta__desc {
+    order: 2;
+    margin-top: 0;
+    margin-inline-start: auto;
+    flex: 0 0 23.8%;   /* 319 / 1341 */
+  }
+
+  .cta__action { margin-inline-start: 64.2%; }   /* ~ button x=911 / 1341 content width */
+
+  .cta__hand {
+    /* vw-based (not rem) so the bleed past the left edge scales with the
+       viewport instead of only lining up at exactly 1440px */
+    left: -68vw;
+    top: -2vw;
+    width: 62vw;
+  }
+
+  .cta__btn { font-size: 1.25rem; }
+  .cta__btn-bracket { height: 2rem; }
+}
+
+/* ==========================================================================
+   BLOCK 07: SELECTED WORK — pinned, scroll-driven case switcher
+   Desktop Figma node 8119:34676 (1440 × 951), Mobile node 7974:57305
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Mobile: a normal, compact, non-pinned block (Figma mobile node 7974:57305
+   is ~795px total — there's no room for a scroll-jacked pin). Case
+   switching happens by tapping a name in the list instead of by scrolling;
+   see the controller script for the breakpoint check.
+
+   Desktop: pin mechanics — wrap is N * 100vh tall (N set by JS via --n),
+   the sticky inner is one viewport tall and never moves while the wrap
+   scrolls through it (moved into the desktop media query below).
+   -------------------------------------------------------------------------- */
+.work__wrap {
+  position: relative;
+}
+
+.work__sticky {
+  overflow: hidden;
+  background: var(--c-bg);
+  color: var(--c-white);
+  border-radius: 1.875rem 1.875rem 0 0;   /* 30px, mobile */
+  display: flex;
+  align-items: center;
+}
+
+.work__texture {
+  position: absolute;
+  inset: 0;
+  background: url('../assets/img/approach-texture.png') center / cover no-repeat;
+  mix-blend-mode: overlay;
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.work__body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  width: 100%;
+  padding: 2.5rem 6.4%;
+}
+
+/* --------------------------------------------------------------------------
+   Headline
+   -------------------------------------------------------------------------- */
+.work__head {
+  display: flex;
+  flex-direction: column;
+}
+
+.work__head-r1 { display: flex; flex-direction: column; }
+
+.work__head-r2 {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.work__label {
+  font-family: var(--ff-text);
+  font-size: 0.625rem;   /* 10px mobile */
+  line-height: 1.1;
+  text-transform: uppercase;
+  display: none;   /* the full "(Selected work)" label is desktop-only */
+}
+
+.work__label--mobile {
+  display: block;
+  flex: none;
+  white-space: nowrap;
+  padding-inline-start: 0.5rem;
+}   /* short "(work)" tag, mobile-only */
+
+.work__head-r2 .work__h1 { min-width: 0; }
+
+.work__accent { color: var(--c-brand); }
+
+.work__h1 {
+  font-family: var(--ff-display);
+  font-weight: 400;
+  font-size: 3.5rem;   /* 56px mobile */
+  line-height: var(--display-lh);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.work__head-r1 .work__h1 { text-align: right; }
+
+/* --------------------------------------------------------------------------
+   Content grid — column (list, image, details) on mobile, row on desktop
+   -------------------------------------------------------------------------- */
+.work__grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Case name "picker" list */
+.work__list {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  width: 100%;
+}
+
+.work__bracket {
+  height: 2.3125rem;   /* 37px mobile */
+  width: auto;
+  flex: none;
+}
+
+.work__bracket--l { transform: scaleX(-1); }
+
+.work__list-viewport {
+  --item-h: 1.75rem;   /* 28px mobile */
+  position: relative;
+  flex: 1 1 auto;
+  /* reserves room for the full unclipped stack so neighbours don't
+     overlap whatever follows in the layout */
+  height: calc(var(--n, 3) * var(--item-h));
+}
+
+.work__list-track {
+  --active: 0;
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  transform: translateY(calc(((var(--n, 3) - 1) / 2 - var(--active)) * var(--item-h)));
+  transition: transform 500ms var(--ease-brand);
+}
+
+.work__list-item {
+  height: var(--item-h);
+  line-height: var(--item-h);
+  font-family: var(--ff-text);
+  font-weight: 700;
+  font-size: 1.125rem;   /* 18px mobile */
+  letter-spacing: -0.03em;
+  text-align: center;
+  text-transform: uppercase;
+  opacity: 0.4;
+  cursor: pointer;
+  transition: opacity 500ms var(--ease-brand);
+}
+
+.work__list-item.is-active { opacity: 1; }
+
+/* Case photo — same placeholder throughout */
+.work__image {
+  width: 100%;
+  height: 11.625rem;   /* 186px mobile */
+  border-radius: 1.25rem;   /* 20px */
+  overflow: hidden;
+  flex: none;
+}
+
+.work__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* --------------------------------------------------------------------------
+   Detail panels — one per case, cross-fading in the same box
+   -------------------------------------------------------------------------- */
+.work__details {
+  position: relative;
+  width: 100%;
+}
+
+.work__panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition: opacity 500ms var(--ease-brand),
+              transform 500ms var(--ease-brand);
+}
+
+.work__panel.is-leaving { transform: translateY(-8px); }
+
+.work__panel.is-active {
+  position: relative;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.work__pair {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+}
+
+.work__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1 1 0;
+}
+
+.work__field-title {
+  font-family: var(--ff-text);
+  font-weight: 700;
+  font-size: 1.125rem;   /* 18px mobile */
+  line-height: 1;
+  letter-spacing: -0.06em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.work__field-text {
+  font-family: var(--ff-text);
+  font-size: 0.75rem;   /* 12px mobile */
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.work__result {
+  background: var(--c-brand);
+  color: var(--c-black);
+  border-radius: 0.75rem;   /* 12px mobile */
+  padding: 1.25rem 0.875rem;   /* 20px / 14px */
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.work__result-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: var(--ff-text);
+  font-size: 0.75rem;   /* 12px mobile */
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+/* ==========================================================================
+   SELECTED WORK — DESKTOP ≥ 1024 px
+   ========================================================================== */
+@media (min-width: 1024px) {
+  .work__wrap {
+    height: calc(var(--n, 3) * 100vh);
+  }
+
+  .work__sticky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    border-radius: 0;   /* flush with CTA above, per the desktop frame */
+  }
+
+  .work__texture { opacity: 0.5; }
+
+  .work__body {
+    gap: 5rem;             /* 80px */
+    padding: 6.25rem 3.472%;   /* 100px / 50px */
+  }
+
+  .work__head-r1 {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 9.875rem;   /* 158px */
+  }
+
+  .work__head-r1 .work__h1 { text-align: left; }
+
+  .work__head-r2 { justify-content: flex-start; }
+
+  .work__label {
+    display: block;
+    font-size: 1.125rem;   /* 18px */
+  }
+
+  .work__label--mobile { display: none; }
+
+  .work__h1 { font-size: 9.375rem; white-space: nowrap; }   /* 150px */
+
+  .work__grid {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    height: 27.6875rem;   /* 443px */
+    gap: 2.5rem;
+  }
+
+  .work__list {
+    width: auto;
+    flex: none;
+    gap: 0.5rem;
+  }
+
+  .work__bracket { height: 3.4375rem; }   /* 55px */
+
+  .work__list-viewport {
+    --item-h: 2.25rem;   /* 36px */
+    width: 19rem;         /* 304px */
+    flex: none;
+  }
+
+  .work__list-item { font-size: 1.5rem; }   /* 24px */
+
+  .work__image {
+    width: 21.375rem;    /* 342px */
+    height: 100%;
+    flex: none;
+    order: 0;
+  }
+
+  .work__details {
+    width: 30.5rem;   /* 488px */
+    height: 100%;
+    flex: none;
+  }
+
+  .work__panel { justify-content: flex-start; gap: 1.5rem; }
+
+  .work__pair {
+    display: contents;   /* unwrap: Context/What we did flow as siblings of Result */
+  }
+
+  .work__field-title { font-size: 2.5rem; }   /* 40px */
+  .work__field-text  { font-size: 1.125rem; } /* 18px */
+
+  .work__result {
+    border-radius: 1.25rem;   /* 20px */
+    padding: 1.5rem 1.25rem;  /* 24px / 20px */
+  }
+
+  .work__result-list { font-size: 1.125rem; }
+}
+
+/* ==========================================================================
+   BLOCK 08: PROCESS — GSAP ScrollTrigger pinned card fly-in
+   Desktop Figma node 8119:34713 (1440 × 829)
+   ========================================================================== */
+.process {
+  position: relative;
+  overflow: hidden;
+  height: auto;   /* desktop turns this into a 100svh scroll-jacked pin */
+  display: flex;
+  align-items: center;
+  background: var(--c-bg);
+  color: var(--c-white);
+  border-radius: 1.875rem 1.875rem 0 0;   /* 30px, mobile */
+}
+
+.process__texture {
+  position: absolute;
+  inset: 0;
+  background: url('../assets/img/about-texture.png') center / cover no-repeat;
+  opacity: 0.16;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.process__grad {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 9rem;
+  pointer-events: none;
+  z-index: 1;
+  background: linear-gradient(to bottom, rgba(18, 18, 18, 0) 0%, #121212 88.942%);
+}
+
+.process__grad--top {
+  top: 0;
+  transform: scaleY(-1);
+}
+
+.process__grad--bottom { bottom: 0; }
+
+.process__body {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+  width: 100%;
+  padding: 2.5rem 6.4%;
+}
+
+/* --------------------------------------------------------------------------
+   Headline
+   -------------------------------------------------------------------------- */
+.process__head {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.process__label {
+  font-family: var(--ff-text);
+  font-size: 0.625rem;   /* 10px mobile */
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.process__accent { color: var(--c-brand); }
+
+.process__title-row {
+  display: flex;
+  flex-direction: row;   /* "from idea to launch" sits on one line on mobile */
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.125em;
+}
+
+.process__title {
+  font-family: var(--ff-display);
+  font-weight: 400;
+  font-size: 3.5rem;   /* 56px mobile */
+  line-height: var(--display-lh);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin: 0;
+  color: var(--c-white);
+}
+
+.process__title--accent { color: var(--c-brand); }
+
+/* --------------------------------------------------------------------------
+   Card fan — same absolute geometry at every breakpoint (per spec); on
+   mobile the wrapper becomes a native horizontally-scrollable, snapping
+   strip once the fly-in has settled
+   -------------------------------------------------------------------------- */
+.process__fan-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+}
+
+.process__fan {
+  position: relative;
+  width: 49.27rem;    /* 788px, fixed — mobile Figma, not recalculated */
+  height: 14.56rem;   /* 233px */
+}
+
+.process__slot {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  scroll-snap-align: start;
+  will-change: transform, opacity;
+}
+
+.process__slot--1 { left: 0;        top: 0.22rem; width: 10.92rem; height: 13.92rem; z-index: 1; }
+.process__slot--2 { left: 8.86rem;  top: 0;       width: 11.43rem; height: 14.31rem; z-index: 2; }
+.process__slot--3 { left: 18.5rem;  top: 0.05rem; width: 11.3rem;  height: 14.2rem;  z-index: 3; }
+.process__slot--4 { left: 27.97rem; top: 0.07rem; width: 11.25rem; height: 14.17rem; z-index: 4; }
+.process__slot--5 { left: 38.31rem; top: 0.19rem; width: 10.97rem; height: 13.95rem; z-index: 5; }
+
+.process__card {
+  width: 10.875rem;   /* 174px, fixed */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 1.25rem 0.875rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.process__card--yellow {
+  background: var(--c-brand);
+  color: var(--c-black);
+  box-shadow: 0.1875rem 0.125rem 0.96875rem rgba(224, 64, 0, 0.3);
+}
+
+.process__card--orange {
+  background: var(--c-brand-second);
+  color: var(--c-white);
+}
+
+.process__card-num {
+  align-self: flex-start;
+  font-family: "High Speed", monospace;
+  font-size: 1.625rem;   /* 26px mobile */
+  line-height: 1;
+  opacity: 0.39;
+  margin: 0;
+}
+
+.process__card-visual {
+  width: 100%;
+  height: 3.75rem;   /* 60px mobile */
+  flex: none;
+  overflow: hidden;
+}
+
+.process__card-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.process__card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.process__card-title {
+  font-family: var(--ff-text);
+  font-weight: 700;
+  font-size: 1.125rem;   /* 18px mobile */
+  line-height: 1;
+  letter-spacing: -0.06em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.process__card-text {
+  font-family: var(--ff-text);
+  font-size: 0.75rem;   /* 12px mobile */
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+/* ==========================================================================
+   PROCESS — DESKTOP ≥ 1024 px
+   ========================================================================== */
+@media (min-width: 1024px) {
+  .process {
+    height: 100svh;   /* scroll-jacked pin — see the controller script */
+    border-radius: 0;   /* flush with Selected Work above */
+  }
+
+  .process__body {
+    gap: 6.25rem;              /* 100px */
+    padding: 6.25rem 3.472%;   /* 100px / 50px */
+  }
+
+  .process__head {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 11.6875rem;   /* 187px */
+  }
+
+  .process__title-row {
+    flex-direction: row;
+    align-items: center;
+    gap: 10.6875rem;   /* 171px */
+    height: 6.75rem;   /* 108px */
+  }
+
+  .process__label { font-size: 1.125rem; }   /* 18px */
+  .process__title { font-size: 9.375rem; white-space: nowrap; }   /* 150px */
+
+  .process__fan-wrap { overflow: visible; }
+
+  .process__fan {
+    width: 83.75rem;    /* 1340px, fixed — from Figma, not recalculated */
+    height: 26.3125rem; /* 421px */
+  }
+
+  .process__slot--1 { left: 0;        top: 0.9225rem;  width: 20.0368rem; height: 24.8421rem; }
+  .process__slot--2 { left: 18.75rem; top: 0.9375rem;  width: 20.5703rem; height: 25.2698rem; }
+  .process__slot--3 { left: 36.75rem; top: 0;          width: 21.7614rem; height: 26.209rem;  }
+  .process__slot--4 { left: 57.0625rem; top: 0.625rem; width: 20.6896rem; height: 24.0231rem; }
+  .process__slot--5 { left: 72rem;    top: 0.4363rem;  width: 20.7306rem; height: 25.3975rem; }
+
+  .process__card {
+    width: 20rem;   /* 320px, fixed */
+    gap: 1.5rem;
+    padding: 1.25rem;
+    border-radius: 1.25rem;
+  }
+
+  .process__card-num   { font-size: 3.125rem; }  /* 50px */
+  .process__card-visual { height: 8.8125rem; }   /* 141px */
+  .process__card-title { font-size: 2.5rem; }    /* 40px */
+  .process__card-text  { font-size: 1.125rem; }  /* 18px */
+}
+
+/* ==========================================================================
+   BLOCK 09: CTA FORM
+   Desktop Figma node 8119:34757, Mobile node 7981:57464
+   ========================================================================== */
+.cta2 {
+  position: relative;
+  overflow: hidden;
+  background: var(--c-brand);
+  color: var(--c-black);
+  border-radius: 1.875rem 1.875rem 0 0;   /* 30px */
+  padding: 3.75rem 6.4% 2.5rem;   /* 60px / 40px, sides 24px @375 */
+}
+
+.cta2__texture {
+  position: absolute;
+  inset: 0;
+  background: url('../assets/img/approach-texture.png') center / cover no-repeat;
+  mix-blend-mode: overlay;
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cta2__body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.5rem;   /* 40px */
+  text-align: center;
+}
+
+.cta2__header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;   /* 12px */
+}
+
+.cta2__title {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--ff-display);
+  font-weight: 400;
+  font-size: 3.5rem;   /* 56px mobile */
+  line-height: var(--display-lh);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.cta2__accent { color: var(--c-brand-second); }
+
+.cta2__subtitle {
+  font-family: var(--ff-text);
+  font-size: 0.875rem;   /* 14px mobile */
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  max-width: 17.25rem;   /* 276px */
+}
+
+/* --------------------------------------------------------------------------
+   Form
+   -------------------------------------------------------------------------- */
+.cta2__form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.875rem;   /* 30px mobile */
+  width: 100%;
+  max-width: 37.5rem;   /* 600px */
+}
+
+.cta2__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;   /* 16px mobile */
+  width: 100%;
+  max-width: 13.4375rem;   /* 215px mobile field column */
+}
+
+.cta2__row {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.cta2__field,
+.cta2__field--full { width: 100%; }
+
+.cta2__input {
+  width: 100%;
+  height: 2.5rem;   /* 40px mobile */
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.6);   /* default state, from Figma */
+  border-radius: 0;
+  background: none;
+  outline: none;
+  font-family: var(--ff-text);
+  font-size: 0.875rem;   /* 14px mobile */
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  text-align: center;
+  color: var(--c-black);
+  padding: 0;
+  transition: border-color 0.2s ease;
+}
+
+.cta2__input::placeholder { color: rgba(0, 0, 0, 0.4); }   /* Figma default state */
+
+/* Figma-confirmed: the focused input shows a solid black border (vs the
+   default rgba(0,0,0,.6)) — seen directly on the first field in the CTA mock */
+.cta2__input:focus { border-bottom-color: #000; }
+
+/* No explicit "filled" variant was reachable via the API (needs Dev/Full
+   seat in Figma, per the file owner) — keeping the same solid border once a
+   value is present is a reasonable, low-risk default, not a Figma value */
+.cta2__field--filled .cta2__input { border-bottom-color: #000; }
+
+/* No "error" variant was reachable either — reusing the site's existing
+   alert-ish accent color rather than inventing a new one */
+.cta2__field--error .cta2__input { border-bottom-color: var(--c-brand-second); }
+
+/* --------------------------------------------------------------------------
+   Submit button
+   -------------------------------------------------------------------------- */
+.cta2__btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;   /* 4px mobile */
+  padding-block: 0.25rem;
+  background: none;
+  border: 0;
+  font-family: var(--ff-text);
+  font-weight: 500;
+  font-size: 1.125rem;   /* 18px mobile */
+  text-transform: uppercase;
+  color: var(--c-black);
+  cursor: pointer;
+}
+
+.cta2__btn span { transition: color 0.2s ease; }
+
+.cta2__btn-bracket {
+  height: 2rem;   /* 32px mobile */
+  width: auto;
+  flex: none;
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cta2__btn-bracket--l { transform: scaleX(-1); }
+
+/* No hover/disabled variant was reachable via the API either — this hover
+   (brackets ease outward, text picks up the accent) follows the site's own
+   established hover language rather than a confirmed Figma value */
+.cta2__btn:not(:disabled):hover .cta2__btn-bracket--l { transform: scaleX(-1) translateX(-0.25rem); }
+.cta2__btn:not(:disabled):hover .cta2__btn-bracket--r { transform: translateX(0.25rem); }
+.cta2__btn:not(:disabled):hover span { color: var(--c-brand-second); }
+
+.cta2__btn:disabled {
+  opacity: 0.4;   /* reasonable default per the brief — no disabled variant found */
+  cursor: not-allowed;
+}
+
+.cta2__status {
+  min-height: 1.2em;
+  font-family: var(--ff-text);
+  font-size: 0.875rem;
+}
+
+/* ==========================================================================
+   CTA FORM — DESKTOP ≥ 1024 px
+   ========================================================================== */
+@media (min-width: 1024px) {
+  .cta2 { padding: 6.25rem 3.472%; }   /* 100px / 50px */
+
+  .cta2__body { gap: 3.125rem; }   /* 50px */
+  .cta2__header { gap: 0.875rem; }   /* 14px */
+
+  .cta2__title { font-size: 9.375rem; }   /* 150px */
+  .cta2__title-line { white-space: nowrap; }
+
+  .cta2__subtitle { font-size: 1.125rem; max-width: none; }   /* 18px */
+
+  .cta2__fields { gap: 2rem; max-width: none; }   /* 32px */
+  .cta2__row { flex-direction: row; gap: 0.75rem; }   /* 12px */
+  .cta2__field { flex: 1 1 0; }
+
+  .cta2__input {
+    height: 2.75rem;    /* 44px */
+    font-size: 1.125rem; /* 18px */
+    border-bottom-width: 2px;
+  }
+
+  .cta2__btn { gap: 0.75rem; font-size: 1.5rem; }   /* 12px / 24px */
+  .cta2__btn-bracket { height: 3rem; }   /* 48px */
+}
+
+/* ==========================================================================
+   BLOCK 10: FOOTER
+   Desktop Figma node 8119:223, Mobile node 7981:57647
+   ========================================================================== */
+.footer {
+  position: relative;
+  background: var(--c-bg);
+  color: var(--c-white);
+}
+
+.footer__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  padding: 2.5rem 6.4%;
+}
+
+.footer__col--left {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+/* Book a call w/ underline+arrow — confirmed absent from the mobile frame */
+.footer__call {
+  display: none;
+  align-items: center;
+  gap: 0.5em;
+  align-self: flex-start;
+  padding-block-end: 0.2em;
+  border-block-end: var(--rule) solid currentColor;
+  font-family: var(--ff-text);
+  font-weight: 500;
+  font-size: 1rem;
+  text-transform: uppercase;
+  transition: color 0.25s ease;
+}
+
+.footer__call .icon-arrow {
+  inline-size: 1.1em;
+  block-size: auto;
+  flex: none;
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Same "reasonable default, not a confirmed Figma value" caveat as the CTA
+   button above — nudging the arrow on hover follows the site's own pattern */
+.footer__call:hover,
+.footer__call:focus-visible { color: var(--c-brand-second); }
+.footer__call:hover .icon-arrow,
+.footer__call:focus-visible .icon-arrow { transform: translateX(0.2em); }
+
+.footer__logo-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.footer__copyright {
+  order: 2;   /* mobile: logo sits above the copyright line */
+  font-family: var(--ff-text);
+  font-size: 0.75rem;   /* 12px */
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.footer__logo {
+  order: 1;
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* --------------------------------------------------------------------------
+   Links
+   -------------------------------------------------------------------------- */
+.footer__links {
+  display: flex;
+  gap: 6.125rem;   /* 98px mobile, from the Figma column spacing */
+}
+
+.footer__link-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1.875rem;   /* 30px */
+}
+
+.footer__link-label {
+  font-family: var(--ff-text);
+  font-size: 0.625rem;   /* 10px mobile */
+  line-height: 1.1;
+  text-transform: uppercase;
+  opacity: 0.8;
+  margin: 0;
+}
+
+.footer__link-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;   /* 8px mobile */
+}
+
+.footer__link-list a {
+  font-family: var(--ff-text);
+  font-weight: 500;
+  font-size: 0.875rem;   /* 14px mobile */
+  line-height: 1.5;
+  text-transform: uppercase;
+  color: var(--c-white);
+  transition: color 0.2s ease;
+}
+
+/* Reused across every Sitemap/Socials item — matches the same hover already
+   established sitewide (nav links, hero CTA, etc.), since no distinct
+   per-link hover variant was reachable via the API */
+.footer__link-list a:hover,
+.footer__link-list a:focus-visible { color: var(--c-brand-second); }
+
+/* Mobile-only: the mobile frame folds "Privacy" into the top of the Socials
+   column instead of a separate legal row */
+.footer__link-list-item--mobile-only { order: -1; }
+
+.footer__legal { display: none; }   /* dropped entirely on the mobile frame */
+
+/* ==========================================================================
+   FOOTER — DESKTOP ≥ 1024 px
+   ========================================================================== */
+@media (min-width: 1024px) {
+  .footer__body {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 2.5rem 3.1875rem;   /* 40px / 51px */
+  }
+
+  .footer__col--left {
+    width: 51.375rem;   /* 822px */
+    flex: none;
+    gap: 7.875rem;   /* 126px */
+  }
+
+  .footer__call { display: flex; }
+
+  .footer__copyright { order: 1; }
+  .footer__logo { order: 2; }
+
+  .footer__col--right {
+    width: 30.625rem;   /* 490px */
+    flex: none;
+    height: 22.5rem;    /* 360px */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .footer__links { gap: 5.625rem; }   /* 90px */
+
+  .footer__link-label { font-size: 0.875rem; line-height: 1.5; }   /* 14px */
+
+  .footer__link-list { gap: 0.25rem; }   /* 4px */
+  .footer__link-list a { font-size: 1rem; }   /* 16px */
+
+  .footer__link-list-item--mobile-only { display: none; }
+
+  .footer__legal {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .footer__legal-links {
+    display: flex;
+    gap: 2rem;
+    font-family: var(--ff-text);
+    font-weight: 500;
+    font-size: 1rem;   /* 16px */
+    text-transform: uppercase;
+  }
+
+  .footer__legal-links a {
+    color: var(--c-white);
+    transition: color 0.2s ease;
+  }
+
+  .footer__legal-links a:hover,
+  .footer__legal-links a:focus-visible { color: var(--c-brand-second); }
+
+  .footer__year {
+    font-family: var(--ff-text);
+    font-size: 0.875rem;   /* 14px */
+    text-align: right;
+  }
+}
+
+/* ==========================================================================
+   BLOCK 00: PRELOADER
+   Figma node 7390:24751 "Preloader Dark" (6 variants = animation keyframes)
+   Plays once per browser session, timed to real page-load readiness rather
+   than a fixed clock — see the controller script at the bottom of index.html.
+   Mobile-first; positions below are expressed as % of the viewport since
+   this overlay sits outside normal document flow.
+   ========================================================================== */
+html.no-scroll,
+html.no-scroll body { overflow: hidden; height: 100%; }
+
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  overflow: hidden;
+  background: var(--c-bg);
+}
+
+.preloader__sr-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.preloader__text {
+  position: absolute;
+  left: 6.4%;
+  top: 24%;
+  width: 88%;
+  font-family: var(--ff-display);
+  font-weight: 400;
+  font-size: clamp(1.75rem, 8vw, 2.5rem);
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+  color: var(--c-white);
+  text-transform: uppercase;
+}
+
+.preloader__cursor { display: inline-block; }
+
+.preloader__rotator {
+  position: absolute;
+  left: 6.4%;
+  top: 42%;
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+}
+
+.preloader__bracket {
+  height: clamp(1.75rem, 8vw, 2.5rem);
+  width: auto;
+  flex: none;
+}
+
+.preloader__bracket--l { transform: scaleX(-1); }
+
+.preloader__rotator-window {
+  width: max-content;
+  min-width: min(68vw, 22.5rem);
+  height: 1.5em;
+  overflow: hidden;
+  font-size: clamp(0.875rem, 4vw, 1.125rem);
+}
+
+.preloader__rotator-track {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.preloader__rotator-item {
+  font-family: var(--ff-text);
+  font-weight: 500;
+  font-size: 1em;
+  line-height: 1.5;
+  letter-spacing: -0.04em;
+  text-align: center;
+  color: var(--c-white);
+  white-space: nowrap;
+  opacity: 0.4;
+  transition: opacity 0.5s var(--ease-brand);
+}
+
+.preloader__rotator-item.is-active { opacity: 1; }
+
+.preloader__logo {
+  position: absolute;
+  left: 50%;
+  top: 100%;         /* hidden below the fold — animated by the controller */
+  transform: translateX(-50%);
+  width: 87.2%;
+  height: auto;
+  display: block;
+}
+
+/* ==========================================================================
+   PRELOADER — DESKTOP ≥ 1024 px
+   Percentages measured off the Figma frame (1440×810): 100% = full section
+   ========================================================================== */
+@media (min-width: 1024px) {
+  .preloader__text {
+    left: 13.89%;      /* 200 / 1440 */
+    top: 41.98%;       /* 340 / 810  */
+    width: 33.4%;      /* 481 / 1440 */
+    font-size: clamp(2rem, 3.472vw, 3.125rem);   /* 50px @1440 */
+  }
+
+  .preloader__rotator {
+    left: 55.69%;      /* 802 / 1440 */
+    top: 44.57%;       /* 361 / 810  */
+    gap: 0.08em;       /* 4px @50px  */
+  }
+
+  .preloader__bracket { height: clamp(2rem, 3.472vw, 3.125rem); }
+
+  .preloader__rotator-window {
+    min-width: 29.17vw;     /* 420 / 1440 — a floor, actual width tracks content */
+    font-size: clamp(1rem, 1.667vw, 1.5rem);    /* 24px @1440 */
+  }
+
+  .preloader__logo { width: 93.06%; }   /* 1340 / 1440 */
+}
