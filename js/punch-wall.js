@@ -44,6 +44,10 @@
   var BREAK_SPEED = 2100;      /* px/s: how fast the hole spreads from hands  */
   var TILE_LIFE = 0.6;         /* s: a wall tile's flight before it's gone    */
   var SETTLE = 0.95;           /* s: a hero dot's settle after the break      */
+  var BREAK_HOLD = 0.55;       /* s: the last knock cracks it, then it breaks */
+  var IDLE_PERIOD = 4.2;       /* s: one slow lean-in cycle per hand on hero  */
+  var IDLE_STRENGTH = 0.5;     /* how hard they lean, vs ~1.0-1.8 for knocks  */
+  var IDLE_DISP = 20;          /* px of dot slide per unit of slope on hero   */
 
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -165,7 +169,21 @@
     heroEl.insertBefore(canvas, heroEl.firstChild);
     document.documentElement.classList.add('dot-hands');
 
-    var ctx, W, H, fit, hands, active, animating = false;
+    /* each dot's share of the three pressure fields + their slopes, in art
+       units: the hands keep leaning on the screen after they broke through */
+    var N = DOTS.length;
+    var hF = new Float32Array(N * 3), gxF = new Float32Array(N * 3), gyF = new Float32Array(N * 3);
+    DOTS.forEach(function (d, i) {
+      for (var k = 0; k < 3; k++) {
+        hF[i * 3 + k] = sample(maps[k], d[0], d[1]);
+        gxF[i * 3 + k] = (sample(maps[k], d[0] + CELL, d[1]) - sample(maps[k], d[0] - CELL, d[1])) / 2;
+        gyF[i * 3 + k] = (sample(maps[k], d[0], d[1] + CELL) - sample(maps[k], d[0], d[1] - CELL)) / 2;
+      }
+    });
+
+    var ctx, W, H, fit, hands, active;
+    var settling = false;
+    var idleFrom = now();   /* when the idle pushing fades in */
 
     function layout() {
       W = heroEl.clientWidth; H = heroEl.clientHeight;
@@ -177,19 +195,52 @@
       hands = handScreen(fit);
     }
 
+    /* idle: each hand slowly leans in, strains a little and eases off,
+       the two out of step; far gentler than the knocks on the wall */
+    function idlePush(tau) {
+      tau = ((tau % IDLE_PERIOD) + IDLE_PERIOD) % IDLE_PERIOD;
+      if (tau < 0.6) return Math.sin(tau / 0.6 * Math.PI / 2);            /* lean in  */
+      return Math.exp(-(tau - 0.6) * 1.6);                                /* ease off */
+    }
+    function idleAmp(k, t) {
+      var gain = reduceMotion ? 0 : clamp((t - idleFrom) / 1.5, 0, 1);
+      if (!gain) return 0;
+      var breathe = 0.12 * (0.5 + 0.5 * Math.sin(t * 1.5 + k * 2.1));
+      if (k === 2) return gain * (breathe + 0.2 * (idlePush(t) + idlePush(t + IDLE_PERIOD / 2)) / 2);
+      var p = idlePush(t + k * IDLE_PERIOD / 2);
+      return gain * (breathe + IDLE_STRENGTH * p * (1 + 0.06 * Math.sin(t * 31 + k)));
+    }
+
     function draw(t) {
-      if (!active) return;
+      if (!active) return true;
+      /* covered by the sections scrolling over it: skip the work */
+      if (window.scrollY > H * 1.2) return true;
+
+      var a0 = idleAmp(0, t), a1 = idleAmp(1, t), a2 = idleAmp(2, t);
+      var still = !a0 && !a1 && !a2;
+      var px = fit.s;   /* screen px per art unit */
+      var allSettled = true;
+
       ctx.clearRect(0, 0, W, H);
       ctx.fillStyle = '#000';
       ctx.beginPath();
-      var done = true;
-      for (var i = 0; i < DOTS.length; i++) {
+      for (var i = 0; i < N; i++) {
         var d = DOTS[i];
-        var x = fit.ox + d[0] * fit.s, y = fit.oy + d[1] * fit.s, r = d[2] * fit.s;
-        if (animating) {
+        var x = fit.ox + d[0] * px, y = fit.oy + d[1] * px, r = d[2] * px;
+
+        if (!still) {
+          var j = i * 3;
+          var z = a0 * hF[j] + a1 * hF[j + 1] + a2 * hF[j + 2];
+          var gx = a0 * gxF[j] + a1 * gxF[j + 1] + a2 * gxF[j + 2];
+          var gy = a0 * gyF[j] + a1 * gyF[j + 1] + a2 * gyF[j + 2];
+          x -= gx * IDLE_DISP; y -= gy * IDLE_DISP;
+          r *= 1 + 0.45 * z;
+        }
+
+        if (settling) {
           var n = nearestHand(hands, x, y);
           var q = clamp((t - breakAt - n.d / BREAK_SPEED + 0.08) / SETTLE, 0, 1);
-          if (q < 1) done = false;
+          if (q < 1) allSettled = false;
           /* easeOutBack: lands with a small overshoot, like a hand that
              just punched through and pulls back to rest */
           var e = 1 + 2.70158 * Math.pow(q - 1, 3) + 1.70158 * Math.pow(q - 1, 2);
@@ -203,23 +254,22 @@
         ctx.arc(x, y, r, 0, 6.2832);
       }
       ctx.fill();
-      return !done;
+      if (settling && allSettled) settling = false;
+      /* reduced motion: one static frame is all it needs */
+      return !reduceMotion || settling;
     }
 
     layout();
     draw(now());
-    window.addEventListener('resize', function () { layout(); if (!animating) draw(now()); });
+    window.addEventListener('resize', function () { layout(); draw(now()); });
+    addLoop(draw);
 
     return {
       reveal: function () {
-        if (!active) return;
-        animating = true;
-        addLoop(function (t) {
-          var more = draw(t);
-          if (!more) { animating = false; draw(t); }
-          return more;
-        });
-      }
+        settling = true;
+        idleFrom = breakAt + SETTLE + 0.3;
+      },
+      hold: function () { idleFrom = Infinity; }
     };
   })();
 
@@ -460,6 +510,7 @@
     layout();
     window.addEventListener('resize', function () { if (!finished) layout(); });
     addLoop(draw);
+    if (hero) hero.hold();   /* hero hands stay still under the wall */
 
     return {
       /* schedule a knock; returns the seconds until it lands so the caller
@@ -473,15 +524,20 @@
         tension.t0 = now(); tension.dur = dur || 0.8;
         tint = 0.9;
       },
+      /* the final knock: lands like the others (after the wind-up), the
+         wall cracks and strains for BREAK_HOLD, then bursts */
       smash: function (cb) {
         onDone = cb;
         var t = now();
-        knocks.push({ ti: t + 0.06, hand: -1, str: 1.8 });
-        breakAt = t + 0.16;
+        knocks.push({ ti: t + WINDUP, hand: -1, str: 1.8 });
+        tension.t0 = t + WINDUP; tension.dur = BREAK_HOLD;
+        tint = 0.9;
+        breakAt = t + WINDUP + BREAK_HOLD;
         setTimeout(function () {
           root.style.background = 'transparent';
           if (hero) hero.reveal();
-        }, 160);
+        }, (WINDUP + BREAK_HOLD) * 1000);
+        return WINDUP;
       }
     };
   }

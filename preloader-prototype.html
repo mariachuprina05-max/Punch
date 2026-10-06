@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>PUNCH — Marketing people actually notice</title>
 <meta name="description" content="For brands that refuse to blend in. We build sharper messaging and creative systems that make brands impossible to ignore.">
+<link rel="preload" href="assets/fonts/BootzyCondensedTM-Regular.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="stylesheet" href="css/style.css">
 <!-- PROTOTYPE: knock-through-the-wall preloader. Everything specific to it
      lives in this <style>, js/punch-wall.js and the preloader controller
@@ -19,6 +20,11 @@
     pointer-events: none;
   }
   .hero__dots { z-index: 0; }
+
+  /* the headline line has no entrance animation any more, so it waits
+     (invisibly, a few hundred ms at most) for the display font instead of
+     flashing in a fallback face first */
+  .preloader:not(.is-font-ready) .preloader__text { visibility: hidden; }
 
   /* the canvas draws the hands now, so drop the PNG and keep only the grain */
   @media (min-width: 1024px) {
@@ -59,7 +65,6 @@
     <img class="preloader__bracket preloader__bracket--r" src="assets/img/cta-bracket-r.svg" alt="">
   </div>
 
-  <img class="preloader__logo" id="preloaderLogo" src="assets/img/preloader-punch-logo.svg" alt="Punch">
 </div>
 <script>
 /* Runs immediately, before the rest of the page parses: on a repeat visit
@@ -71,6 +76,15 @@
   if (false && sessionStorage.getItem('preloaderShown')) {
     var el = document.getElementById('preloader');
     if (el) el.remove();
+    return;
+  }
+  var pre = document.getElementById('preloader');
+  function show() { pre.classList.add('is-font-ready'); }
+  setTimeout(show, 700);   /* never wait longer than this for the font */
+  if (document.fonts && document.fonts.load) {
+    document.fonts.load('1em "Bootzy Condensed TM"').then(show, show);
+  } else {
+    show();
   }
 })();
 </script>
@@ -776,24 +790,11 @@
   var rotatorEl = document.getElementById('preloaderRotator');
   var track = document.getElementById('preloaderTrack');
   var items = track.querySelectorAll('.preloader__rotator-item');
-  var logo = document.getElementById('preloaderLogo');
   var N = items.length;
   var index = 0;
 
-  /* the static line "You're in the right place if" isn't typed out — it
-     just resolves in as a quick per-letter flourish, then holds still
-     while only the cursor keeps blinking (per the brief's char-split
-     pattern: near-simultaneous stagger, not a real-time typewriter) */
-  if (typeof SplitText !== 'undefined') {
-    var textSplit = new SplitText(textWordsEl, { type: 'chars' });
-    gsap.from(textSplit.chars, {
-      opacity: 0,
-      yPercent: 100,
-      stagger: 0.02,
-      duration: 0.6,
-      ease: window.BRAND_EASE
-    });
-  }
+  /* the static line "You're in the right place if" is on screen from the
+     first frame; only the cursor blinks */
 
   var cursorTween = gsap.to(cursor, {
     opacity: 0,
@@ -820,25 +821,24 @@
   /* ---- the wall: hands behind it knock on every text change ----------- */
   var wall = window.PunchWall ? window.PunchWall.mount(root) : null;
   var KNOCKS = ['l', 'r'];                 /* knock 1: left hand, knock 2: right */
+  var BREAK_ON = 3;                        /* the third change breaks the wall  */
   var changes = 0;
 
   /* ---- rotator: every change is a knock — the text jumps on the impact.
-     After two changes (and once the page is really ready) the outro plays;
-     on a slow load it keeps knocking and rotating until it is. ---------- */
+     The third change is the final knock that breaks the wall; on a slow
+     load the hands keep knocking (and the text keeps rotating) until the
+     page is really ready, and the next change after that breaks it. ---- */
   function rotatorLoop() {
-    if (changes >= 2 && isReady()) {
-      outro();
-      return;
-    }
-    var windup = 0;
-    if (wall) {
-      /* the knock is scheduled first and lands `windup` seconds later,
-         at the exact moment the text starts to move */
-      windup = 0.16;
-      gsap.delayedCall(HOLD_MS / 1000 - windup, function () {
-        wall.knock(KNOCKS[changes % 2], changes === 0 ? 1.0 : 1.3);
-      });
-    }
+    var final = false;
+    var windup = wall ? 0.16 : 0;
+
+    gsap.delayedCall(HOLD_MS / 1000 - windup, function () {
+      final = changes + 1 >= BREAK_ON && isReady();
+      if (!wall) return;
+      if (final) wall.smash(finish);
+      else wall.knock(KNOCKS[changes % 2], changes === 0 ? 1.0 : 1.3);
+    });
+
     gsap.delayedCall(HOLD_MS / 1000, function () {
       changes++;
       items[index].classList.remove('is-active');
@@ -848,13 +848,14 @@
         yPercent: -(100 / N) * index,
         duration: STEP_S,
         ease: window.BRAND_EASE,
-        onComplete: rotatorLoop
+        onComplete: final ? null : rotatorLoop
       });
+      if (final) outro();
     });
   }
 
-  /* ---- outro: the logo rises while both hands lean in harder, then the
-     third knock breaks the wall and the hero shows through the hole ----- */
+  /* ---- outro: the last phrase gets a beat to be read while the wall
+     cracks, then the copy goes with the wall ----------------------------- */
   function outro() {
     cursorTween.kill();
     gsap.set(cursor, { opacity: 1 });
@@ -862,24 +863,11 @@
     if (!wall) {
       /* no canvas support: the original slide-away exit */
       gsap.timeline({ onComplete: finish })
-        .to(logo, { top: '48.6%', duration: 0.9, ease: window.BRAND_EASE })
-        .to([textEl, rotatorEl], { opacity: 0, duration: 0.4 }, '<')
-        .to(root, { yPercent: -100, duration: 0.8, ease: window.BRAND_EASE }, '+=0.3');
+        .to(root, { yPercent: -100, duration: 0.8, ease: window.BRAND_EASE }, '+=0.8');
       return;
     }
 
-    var RISE = 0.8;
-    wall.tension(RISE);
-    gsap.set(logo, { xPercent: -50, x: 0 });   /* GSAP owns the centring now */
-
-    gsap.timeline()
-      .to([textEl, rotatorEl], { opacity: 0, duration: 0.35 }, 0)
-      .to(logo, { top: '48.6%', duration: RISE, ease: window.BRAND_EASE }, 0)
-      .add(function () {
-        wall.smash(function () { finish(); });
-      }, RISE)
-      /* the logo is part of the wall: it flies at the viewer and is gone */
-      .to(logo, { scale: 1.5, opacity: 0, duration: 0.45, ease: 'power2.in' }, RISE + 0.1);
+    gsap.to([textEl, rotatorEl], { opacity: 0, duration: 0.3, delay: 0.6 });
   }
 
   rotatorLoop();
