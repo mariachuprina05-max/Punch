@@ -42,10 +42,6 @@
   .hero-intro-pending .hero__bar,
   .hero-intro-pending .hero__stage { visibility: hidden; }
 
-  /* SplitText char masks: a touch of room so the condensed caps' tops and
-     the rotate-in don't get clipped */
-  .hero__word .char-mask { padding-block: 0.06em; margin-block: -0.06em; }
-
   /* the canvas draws the hands now, so drop the PNG and keep only the grain */
   @media (min-width: 1024px) {
     html.dot-hands .hero {
@@ -1166,7 +1162,39 @@
 
 <script>
 /* ==========================================================================
-   Text reveals: line-mask for section headings, letter stagger for one
+   PunchReveal: the headline entrance shared by the hero and every section
+   heading. Letters rise out of a mask with a slight tilt, then the split
+   is reverted so no mask can clip the glyphs once the text is at rest.
+   ========================================================================== */
+window.PunchReveal = {
+  prepare: function (el) {
+    var split = new SplitText(el, { type: 'words,chars', mask: 'chars' });
+    /* the display face's glyphs overshoot their boxes: give each mask some
+       room (offset by negative margins, so the layout doesn't move) */
+    if (split.masks && split.masks.length) {
+      gsap.set(split.masks, { padding: '0.14em 0.08em', margin: '-0.14em -0.08em' });
+    }
+    gsap.set(split.chars, { yPercent: 125, rotate: 4, transformOrigin: '0% 100%' });
+    return split;
+  },
+  play: function (split, delay) {
+    var n = split.chars.length || 1;
+    return gsap.to(split.chars, {
+      yPercent: 0,
+      rotate: 0,
+      duration: 1.15,
+      ease: 'expo.out',
+      stagger: Math.min(0.035, 0.7 / n),   /* long lines don't drag on */
+      delay: delay || 0,
+      onComplete: function () { split.revert(); }
+    });
+  }
+};
+</script>
+<script>
+/* ==========================================================================
+   Text reveals: section headings share the hero headline's entrance.
+   (Previously: line-mask for section headings, letter stagger for one
    accent word — see the preloader script above for the same char pattern
    applied to the "You're in the right place if" line.
    ========================================================================== */
@@ -1187,52 +1215,41 @@
   fontsReady.then(setupReveals);
 
   function setupReveals() {
-    /* ---- pattern: line reveal, for section headings that currently just
-       appear with no animation of their own ------------------------------ */
-    function revealLines(selector) {
-      document.querySelectorAll(selector).forEach(function (heading) {
-        var split = new SplitText(heading, { type: 'lines', linesClass: 'line' });
-        gsap.set(split.lines, { yPercent: 110 });
-        gsap.to(split.lines, {
-          yPercent: 0,
-          duration: 0.9,
-          stagger: 0.08,
-          ease: window.BRAND_EASE,
-          scrollTrigger: { trigger: heading, start: 'top 85%' }
-        });
-      });
-    }
+    /* every display heading uses the same entrance as the hero headline
+       (PunchReveal, defined just above), played once as it scrolls into
+       view. Process titles are left out: the pinned Process section
+       animates them itself. */
+    var HEADINGS = [
+      '.about__h1-line1', '.about__h1-line2',
+      '.approach__h1',
+      '.presvcs__title',
+      '.svc-card__title',
+      '.work__h1',
+      '.cta__h1',
+      '.cta2__title'
+    ].join(', ');
 
-    revealLines('.svc-card__title');
-    revealLines('.work__h1');
-    revealLines('.cta__h1');
-
-    /* ---- pattern: letter stagger, used sparingly — just the one accent
-       word in the closing CTA headline ("impossible") -------------------- */
-    var accent = document.querySelector('.cta2__accent');
-    if (accent) {
-      var accentSplit = new SplitText(accent, { type: 'chars' });
-      gsap.from(accentSplit.chars, {
-        opacity: 0,
-        yPercent: 100,
-        stagger: 0.02,
-        duration: 0.6,
-        ease: window.BRAND_EASE,
-        scrollTrigger: { trigger: accent, start: 'top 85%' }
+    document.querySelectorAll(HEADINGS).forEach(function (heading) {
+      var split = window.PunchReveal.prepare(heading);
+      ScrollTrigger.create({
+        trigger: heading,
+        start: 'top 88%',
+        once: true,
+        onEnter: function () { window.PunchReveal.play(split); }
       });
-    }
+    });
   }
 })();
 </script>
 
 <script>
 /* ==========================================================================
-   Hero: entrance + scroll drift
+   Hero: entrance + scroll depth
    1. small elements first (nav, tags, leads, buttons): soft scale + fade
    2. then the four headline words: letters rise out of a mask with a
       slight tilt, word by word
-   3. on scroll, as the next section slides over the sticky hero, the words
-      drift apart at different speeds and the halftone hands sink back
+   3. on scroll, as the next section slides over the sticky hero, the
+      halftone hands sink back a little
    It starts on the wall break (the 'punch:reveal' event) or right away when
    there's no preloader (repeat visit in the same session).
    ========================================================================== */
@@ -1258,11 +1275,8 @@
 
     var fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
     fontsReady.then(function () {
-      splits = words.map(function (w) { return new SplitText(w, { type: 'chars', mask: 'chars' }); });
+      splits = words.map(function (w) { return window.PunchReveal.prepare(w); });
       gsap.set(smalls, { autoAlpha: 0, scale: 0.88, y: 6 });
-      splits.forEach(function (sp) {
-        gsap.set(sp.chars, { yPercent: 115, rotate: 7, transformOrigin: '0% 100%' });
-      });
       unhide();
       ready = true;
       maybePlay();
@@ -1286,36 +1300,19 @@
     }, 0);
 
     splits.forEach(function (sp, i) {
-      tl.to(sp.chars, {
-        yPercent: 0, rotate: 0,
-        duration: 1.15,
-        ease: 'expo.out',
-        stagger: 0.035
-      }, 0.45 + i * 0.14);
+      tl.add(window.PunchReveal.play(sp), 0.45 + i * 0.14);
     });
   }
 
-  /* ---- scroll drift -------------------------------------------------- */
+  /* on scroll the halftone hands sink back a little as the next section
+     slides over the sticky hero (the copy itself stays put) */
   var next = hero.nextElementSibling;
-  if (!next || typeof ScrollTrigger === 'undefined' ||
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-  var drift = {
-    '.hero__word--marketing': { xPercent: -14, yPercent: -10 },
-    '.hero__word--people':    { xPercent: 16,  yPercent: -22 },
-    '.hero__word--actually':  { xPercent: 9,   yPercent: -38 },
-    '.hero__word--notice':    { xPercent: -10, yPercent: -55 }
-  };
-  var st = { trigger: next, start: 'top bottom', end: 'top top', scrub: true };
-
-  Object.keys(drift).forEach(function (sel) {
-    var el = hero.querySelector(sel);
-    if (el) gsap.to(el, Object.assign({ ease: 'none', scrollTrigger: st }, drift[sel]));
-  });
   var dots = hero.querySelector('.hero__dots');
-  if (dots) gsap.to(dots, { yPercent: 12, scale: 0.96, ease: 'none', scrollTrigger: st });
-  gsap.to(hero.querySelector('.hero__bar'), { autoAlpha: 0, y: -20, ease: 'none',
-    scrollTrigger: { trigger: next, start: 'top bottom', end: 'top 60%', scrub: true } });
+  if (next && dots && typeof ScrollTrigger !== 'undefined' &&
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    gsap.to(dots, { yPercent: 12, scale: 0.96, ease: 'none',
+      scrollTrigger: { trigger: next, start: 'top bottom', end: 'top top', scrub: true } });
+  }
 })();
 </script>
 
