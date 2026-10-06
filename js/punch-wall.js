@@ -48,6 +48,11 @@
   var IDLE_PERIOD = 4.2;       /* s: one slow lean-in cycle per hand on hero  */
   var IDLE_STRENGTH = 0.5;     /* how hard they lean, vs ~1.0-1.8 for knocks  */
   var IDLE_DISP = 20;          /* px of dot slide per unit of slope on hero   */
+  var ALPHA_BODY = 0.22;       /* hero dots: the soft halo of the figure ...  */
+  var ALPHA_HAND = 0.5;        /* ... and the hands (Figma: black @ 60%)      */
+  var PARALLAX = 16;           /* px the hands drift with the mouse           */
+  var CURSOR_R = 170;          /* px: dots near the cursor make way ...       */
+  var CURSOR_PUSH = 14;        /* ... by up to this much                      */
 
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -112,7 +117,8 @@
     var s;
     if (W >= HERO_MIN_W) {
       s = Math.max(W / ART_W, H / ART_H);
-      return { s: s, ox: (W - ART_W * s) / 2, oy: (H - ART_H * s) / 2 };
+      /* nudged up so the lower hand clears the hero's bottom fade */
+      return { s: s, ox: (W - ART_W * s) / 2, oy: (H - ART_H * s) / 2 - H * 0.05 };
     }
     s = W / 880;
     return { s: s, ox: W / 2 - 520 * s, oy: H * 0.5 - 360 * s };
@@ -181,6 +187,35 @@
       }
     });
 
+    /* how "hand" each dot is (0 body halo .. 1 hand): sets its opacity and
+       how far it travels with the mouse (hands sit closer to the viewer) */
+    var LEVELS = 6;
+    var handness = new Float32Array(N), level = new Uint8Array(N);
+    var fills = [];
+    for (var lv = 0; lv < LEVELS; lv++) {
+      fills.push('rgba(0,0,0,' + (ALPHA_BODY + (ALPHA_HAND - ALPHA_BODY) * lv / (LEVELS - 1)).toFixed(3) + ')');
+    }
+    DOTS.forEach(function (d, i) {
+      var h = clamp((hF[i * 3] + hF[i * 3 + 1]) * 1.4, 0, 1);
+      handness[i] = h;
+      level[i] = Math.round(h * (LEVELS - 1));
+    });
+    var qx = new Float32Array(N), qy = new Float32Array(N), qr = new Float32Array(N);
+
+    /* mouse, smoothed every frame so the figure drifts rather than snaps */
+    var mouse = { x: 0, y: 0, tx: 0, ty: 0, cx: 0, cy: 0, tcx: 0, tcy: 0, s: 0, ts: 0 };
+    if (window.matchMedia('(pointer: fine)').matches && !reduceMotion) {
+      window.addEventListener('pointermove', function (e) {
+        var r = canvas.getBoundingClientRect();
+        mouse.tx = e.clientX / window.innerWidth * 2 - 1;
+        mouse.ty = e.clientY / window.innerHeight * 2 - 1;
+        mouse.tcx = e.clientX - r.left; mouse.tcy = e.clientY - r.top;
+        if (!mouse.s) { mouse.cx = mouse.tcx; mouse.cy = mouse.tcy; }
+        mouse.ts = 1;
+      }, { passive: true });
+      document.documentElement.addEventListener('mouseleave', function () { mouse.ts = 0; });
+    }
+
     var ctx, W, H, fit, hands, active;
     var settling = false;
     var idleFrom = now();   /* when the idle pushing fades in */
@@ -217,24 +252,40 @@
       if (window.scrollY > H * 1.2) return true;
 
       var a0 = idleAmp(0, t), a1 = idleAmp(1, t), a2 = idleAmp(2, t);
-      var still = !a0 && !a1 && !a2;
       var px = fit.s;   /* screen px per art unit */
       var allSettled = true;
 
-      ctx.clearRect(0, 0, W, H);
-      ctx.fillStyle = '#000';
-      ctx.beginPath();
+      mouse.x += (mouse.tx - mouse.x) * 0.05;
+      mouse.y += (mouse.ty - mouse.y) * 0.05;
+      mouse.cx += (mouse.tcx - mouse.cx) * 0.12;
+      mouse.cy += (mouse.tcy - mouse.cy) * 0.12;
+      mouse.s += (mouse.ts - mouse.s) * 0.06;
+      var R2 = CURSOR_R * CURSOR_R;
+
       for (var i = 0; i < N; i++) {
         var d = DOTS[i];
         var x = fit.ox + d[0] * px, y = fit.oy + d[1] * px, r = d[2] * px;
 
-        if (!still) {
-          var j = i * 3;
-          var z = a0 * hF[j] + a1 * hF[j + 1] + a2 * hF[j + 2];
-          var gx = a0 * gxF[j] + a1 * gxF[j + 1] + a2 * gxF[j + 2];
-          var gy = a0 * gyF[j] + a1 * gyF[j + 1] + a2 * gyF[j + 2];
-          x -= gx * IDLE_DISP; y -= gy * IDLE_DISP;
-          r *= 1 + 0.45 * z;
+        var j = i * 3;
+        var z = a0 * hF[j] + a1 * hF[j + 1] + a2 * hF[j + 2];
+        x -= (a0 * gxF[j] + a1 * gxF[j + 1] + a2 * gxF[j + 2]) * IDLE_DISP;
+        y -= (a0 * gyF[j] + a1 * gyF[j + 1] + a2 * gyF[j + 2]) * IDLE_DISP;
+        r *= 1 + 0.45 * z;
+
+        /* parallax: the halo barely moves, the hands follow the mouse */
+        var depth = 0.25 + 0.75 * handness[i];
+        x += mouse.x * PARALLAX * depth;
+        y += mouse.y * PARALLAX * 0.6 * depth;
+
+        /* the cursor parts the dots around it, like a hand through sand */
+        if (mouse.s > 0.01) {
+          var cx = x - mouse.cx, cy = y - mouse.cy, c2 = cx * cx + cy * cy;
+          if (c2 < R2 && c2 > 0.01) {
+            var cd = Math.sqrt(c2), f = 1 - cd / CURSOR_R;
+            f = f * f * mouse.s;
+            x += cx / cd * f * CURSOR_PUSH; y += cy / cd * f * CURSOR_PUSH;
+            r *= 1 + 0.2 * f;
+          }
         }
 
         if (settling) {
@@ -248,12 +299,21 @@
           var push = 70 * Math.exp(-n.d / 700);
           x += n.ux * k * push; y += n.uy * k * push;
           r *= 1 + 0.9 * k;
-          if (r <= 0) continue;
         }
-        ctx.moveTo(x + r, y);
-        ctx.arc(x, y, r, 0, 6.2832);
+        qx[i] = x; qy[i] = y; qr[i] = r;
       }
-      ctx.fill();
+
+      ctx.clearRect(0, 0, W, H);
+      for (var lv = 0; lv < LEVELS; lv++) {
+        ctx.fillStyle = fills[lv];
+        ctx.beginPath();
+        for (i = 0; i < N; i++) {
+          if (level[i] !== lv || qr[i] <= 0) continue;
+          ctx.moveTo(qx[i] + qr[i], qy[i]);
+          ctx.arc(qx[i], qy[i], qr[i], 0, 6.2832);
+        }
+        ctx.fill();
+      }
       if (settling && allSettled) settling = false;
       /* reduced motion: one static frame is all it needs */
       return !reduceMotion || settling;
@@ -536,6 +596,7 @@
         setTimeout(function () {
           root.style.background = 'transparent';
           if (hero) hero.reveal();
+          window.dispatchEvent(new CustomEvent('punch:reveal'));
         }, (WINDUP + BREAK_HOLD) * 1000);
         return WINDUP;
       }

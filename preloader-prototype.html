@@ -26,6 +26,26 @@
      flashing in a fallback face first */
   .preloader:not(.is-font-ready) .preloader__text { visibility: hidden; }
 
+  /* bottom fade, per the Figma "Gradient_bottom" layer: taller, and solid
+     brand yellow from its midpoint down, so the leads and "Scroll" sit on
+     a clean backing above the halftone */
+  .hero__gradient {
+    height: 36.4%;   /* 327 / 900 */
+    background: linear-gradient(to bottom,
+      rgba(255, 247, 20, 0) 0%,
+      var(--c-brand) 51%,
+      var(--c-brand) 100%);
+  }
+
+  /* hero copy stays hidden until its entrance plays (set by the inline
+     script in <head>, cleared by the hero intro script) */
+  .hero-intro-pending .hero__bar,
+  .hero-intro-pending .hero__stage { visibility: hidden; }
+
+  /* SplitText char masks: a touch of room so the condensed caps' tops and
+     the rotate-in don't get clipped */
+  .hero__word .char-mask { padding-block: 0.06em; margin-block: -0.06em; }
+
   /* the canvas draws the hands now, so drop the PNG and keep only the grain */
   @media (min-width: 1024px) {
     html.dot-hands .hero {
@@ -41,6 +61,14 @@
     }
   }
 </style>
+<script>
+  /* hide the hero copy before first paint so its entrance can play; the
+     timeout is only a safety net if the intro script never runs */
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.documentElement.classList.add('hero-intro-pending');
+    setTimeout(function () { document.documentElement.classList.remove('hero-intro-pending'); }, 8000);
+  }
+</script>
 </head>
 <body>
 
@@ -1194,6 +1222,100 @@
       });
     }
   }
+})();
+</script>
+
+<script>
+/* ==========================================================================
+   Hero: entrance + scroll drift
+   1. small elements first (nav, tags, leads, buttons): soft scale + fade
+   2. then the four headline words: letters rise out of a mask with a
+      slight tilt, word by word
+   3. on scroll, as the next section slides over the sticky hero, the words
+      drift apart at different speeds and the halftone hands sink back
+   It starts on the wall break (the 'punch:reveal' event) or right away when
+   there's no preloader (repeat visit in the same session).
+   ========================================================================== */
+(function () {
+  var html = document.documentElement;
+  var hero = document.querySelector('.hero');
+  var pending = html.classList.contains('hero-intro-pending');
+  function unhide() { html.classList.remove('hero-intro-pending'); }
+
+  if (!hero || typeof gsap === 'undefined' || typeof SplitText === 'undefined') { unhide(); return; }
+  gsap.registerPlugin(SplitText, ScrollTrigger);
+
+  var smalls = hero.querySelectorAll('.hero__logo, .hero__nav-link, .hero__social, .hero__call, .hero__menu, .hero__tag, .hero__lead, .hero__scroll');
+  var words = Array.prototype.slice.call(hero.querySelectorAll('.hero__word'));
+  var waitForBreak = !!document.getElementById('preloader');
+  var ready = false, broke = !waitForBreak, played = false;
+  var splits = [];
+
+  if (pending) {
+    window.addEventListener('punch:reveal', function () { broke = true; maybePlay(); }, { once: true });
+    /* safety: never leave the hero hidden if the break event never fires */
+    setTimeout(function () { broke = true; maybePlay(); }, 9000);
+
+    var fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+    fontsReady.then(function () {
+      splits = words.map(function (w) { return new SplitText(w, { type: 'chars', mask: 'chars' }); });
+      gsap.set(smalls, { autoAlpha: 0, scale: 0.88, y: 6 });
+      splits.forEach(function (sp) {
+        gsap.set(sp.chars, { yPercent: 115, rotate: 7, transformOrigin: '0% 100%' });
+      });
+      unhide();
+      ready = true;
+      maybePlay();
+    });
+  }
+
+  function maybePlay() {
+    if (played || !ready || !broke) return;
+    played = true;
+
+    /* on the wall break the hero is still mostly covered by flying tiles:
+       give the holes a moment to open before the copy arrives */
+    var tl = gsap.timeline({ delay: waitForBreak ? 0.25 : 0.1 });
+
+    tl.to(smalls, {
+      autoAlpha: 1, scale: 1, y: 0,
+      duration: 0.9,
+      ease: window.BRAND_EASE,
+      stagger: { each: 0.04, from: 'start' },
+      clearProps: 'transform'
+    }, 0);
+
+    splits.forEach(function (sp, i) {
+      tl.to(sp.chars, {
+        yPercent: 0, rotate: 0,
+        duration: 1.15,
+        ease: 'expo.out',
+        stagger: 0.035
+      }, 0.45 + i * 0.14);
+    });
+  }
+
+  /* ---- scroll drift -------------------------------------------------- */
+  var next = hero.nextElementSibling;
+  if (!next || typeof ScrollTrigger === 'undefined' ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  var drift = {
+    '.hero__word--marketing': { xPercent: -14, yPercent: -10 },
+    '.hero__word--people':    { xPercent: 16,  yPercent: -22 },
+    '.hero__word--actually':  { xPercent: 9,   yPercent: -38 },
+    '.hero__word--notice':    { xPercent: -10, yPercent: -55 }
+  };
+  var st = { trigger: next, start: 'top bottom', end: 'top top', scrub: true };
+
+  Object.keys(drift).forEach(function (sel) {
+    var el = hero.querySelector(sel);
+    if (el) gsap.to(el, Object.assign({ ease: 'none', scrollTrigger: st }, drift[sel]));
+  });
+  var dots = hero.querySelector('.hero__dots');
+  if (dots) gsap.to(dots, { yPercent: 12, scale: 0.96, ease: 'none', scrollTrigger: st });
+  gsap.to(hero.querySelector('.hero__bar'), { autoAlpha: 0, y: -20, ease: 'none',
+    scrollTrigger: { trigger: next, start: 'top bottom', end: 'top 60%', scrub: true } });
 })();
 </script>
 
