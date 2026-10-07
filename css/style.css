@@ -2646,3 +2646,82 @@ html.no-scroll body { overflow: hidden; height: 100%; }
 
   .preloader__logo { width: 93.06%; }   /* 1340 / 1440 */
 }
+
+/* ==========================================================================
+   KNOCK-THROUGH-THE-WALL PRELOADER + HERO HALFTONE HANDS
+   Canvas layers drawn by js/punch-wall.js, the centred preloader copy,
+   the Figma bottom fade and the hero entrance state. Kept last so it
+   overrides the base preloader / hero rules above.
+   ========================================================================== */
+.preloader__wall,
+.hero__dots {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.hero__dots { z-index: 0; }
+
+/* the headline line has no entrance animation any more, so it waits
+   (invisibly, a few hundred ms at most) for the display font instead of
+   flashing in a fallback face first */
+.preloader:not(.is-font-ready) .preloader__text { visibility: hidden; }
+
+/* preloader copy: the headline at the same size as the site's headings,
+   the rotating phrase right under it, both centred as one stack */
+.preloader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1rem, 2.4vw, 2.25rem);
+  padding-inline: 6.4%;
+}
+.preloader__text,
+.preloader__rotator {
+  position: static;
+  left: auto;
+  top: auto;
+  flex: none;
+}
+.preloader__text {
+  width: auto;
+  max-width: 100%;
+  font-size: min(14.933vw, 9.375rem);   /* same as the site's headings: 150px desktop, ~58px @390 */
+  line-height: var(--display-lh);
+  letter-spacing: 0.02em;
+  text-align: center;
+  text-wrap: balance;   /* on phones: two even lines, no lonely "IF" */
+}
+
+/* bottom fade, per the Figma "Gradient_bottom" layer: taller, and solid
+   brand yellow from its midpoint down, so the leads and "Scroll" sit on
+   a clean backing above the halftone */
+.hero__gradient {
+  height: 36.4%;   /* 327 / 900 */
+  background: linear-gradient(to bottom,
+    rgba(255, 247, 20, 0) 0%,
+    var(--c-brand) 51%,
+    var(--c-brand) 100%);
+}
+
+/* hero copy stays hidden until its entrance plays (set by the inline
+   script in <head>, cleared by the hero intro script) */
+.hero-intro-pending .hero__bar,
+.hero-intro-pending .hero__stage { visibility: hidden; }
+
+/* the canvas draws the hands now, so drop the PNG and keep only the grain */
+@media (min-width: 1024px) {
+  html.dot-hands .hero {
+    background-image: repeating-linear-gradient(
+      90deg,
+      rgba(0, 0, 255, var(--grain)) 0 3px,
+      rgba(0, 255, 0, var(--grain)) 3px 7px,
+      rgba(255, 0, 0, var(--grain)) 7px 10px,
+      rgba(0, 0, 0, 0)             10px 13px
+    );
+    background-size: auto;
+    background-position: 0 0;
+  }
+}

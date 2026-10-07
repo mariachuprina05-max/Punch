@@ -5,7 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>PUNCH — Marketing people actually notice</title>
 <meta name="description" content="For brands that refuse to blend in. We build sharper messaging and creative systems that make brands impossible to ignore.">
+<link rel="preload" href="assets/fonts/BootzyCondensedTM-Regular.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="stylesheet" href="css/style.css">
+<script>
+  /* hide the hero copy before first paint so its entrance can play; the
+     timeout is only a safety net if the intro script never runs */
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.documentElement.classList.add('hero-intro-pending');
+    setTimeout(function () { document.documentElement.classList.remove('hero-intro-pending'); }, 8000);
+  }
+</script>
 </head>
 <body>
 
@@ -30,7 +39,6 @@
     <img class="preloader__bracket preloader__bracket--r" src="assets/img/cta-bracket-r.svg" alt="">
   </div>
 
-  <img class="preloader__logo" id="preloaderLogo" src="assets/img/preloader-punch-logo.svg" alt="Punch">
 </div>
 <script>
 /* Runs immediately, before the rest of the page parses: on a repeat visit
@@ -41,6 +49,15 @@
   if (sessionStorage.getItem('preloaderShown')) {
     var el = document.getElementById('preloader');
     if (el) el.remove();
+    return;
+  }
+  var pre = document.getElementById('preloader');
+  function show() { pre.classList.add('is-font-ready'); }
+  setTimeout(show, 700);   /* never wait longer than this for the font */
+  if (document.fonts && document.fonts.load) {
+    document.fonts.load('1em "Bootzy Condensed TM"').then(show, show);
+  } else {
+    show();
   }
 })();
 </script>
@@ -672,6 +689,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/SplitText.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/CustomEase.min.js"></script>
+<script src="js/punch-hands-dots.js"></script>
+<script src="js/punch-wall.js"></script>
 <script>
 /* ==========================================================================
    Motion system: one smooth-scroll engine (Lenis) + one shared easing curve
@@ -744,24 +763,11 @@
   var rotatorEl = document.getElementById('preloaderRotator');
   var track = document.getElementById('preloaderTrack');
   var items = track.querySelectorAll('.preloader__rotator-item');
-  var logo = document.getElementById('preloaderLogo');
   var N = items.length;
   var index = 0;
 
-  /* the static line "You're in the right place if" isn't typed out — it
-     just resolves in as a quick per-letter flourish, then holds still
-     while only the cursor keeps blinking (per the brief's char-split
-     pattern: near-simultaneous stagger, not a real-time typewriter) */
-  if (typeof SplitText !== 'undefined') {
-    var textSplit = new SplitText(textWordsEl, { type: 'chars' });
-    gsap.from(textSplit.chars, {
-      opacity: 0,
-      yPercent: 100,
-      stagger: 0.02,
-      duration: 0.6,
-      ease: window.BRAND_EASE
-    });
-  }
+  /* the static line "You're in the right place if" is on screen from the
+     first frame; only the cursor blinks */
 
   var cursorTween = gsap.to(cursor, {
     opacity: 0,
@@ -785,14 +791,29 @@
   });
   Promise.all([fontsReady, loadReady]).then(function () { pageReady = true; });
 
-  /* ---- rotator: loops 1→2→3→4→1… until the page is ready, then hands
-     off to the outro right after settling on the last item -------------- */
+  /* ---- the wall: hands behind it knock on every text change ----------- */
+  var wall = window.PunchWall ? window.PunchWall.mount(root) : null;
+  var KNOCKS = ['l', 'r'];                 /* knock 1: left hand, knock 2: right */
+  var BREAK_ON = 3;                        /* the third change breaks the wall  */
+  var changes = 0;
+
+  /* ---- rotator: every change is a knock — the text jumps on the impact.
+     The third change is the final knock that breaks the wall; on a slow
+     load the hands keep knocking (and the text keeps rotating) until the
+     page is really ready, and the next change after that breaks it. ---- */
   function rotatorLoop() {
-    if (index === N - 1 && isReady()) {
-      outro();
-      return;
-    }
+    var final = false;
+    var windup = wall ? 0.16 : 0;
+
+    gsap.delayedCall(HOLD_MS / 1000 - windup, function () {
+      final = changes + 1 >= BREAK_ON && isReady();
+      if (!wall) return;
+      if (final) wall.smash(finish);
+      else wall.knock(KNOCKS[changes % 2], changes === 0 ? 1.0 : 1.3);
+    });
+
     gsap.delayedCall(HOLD_MS / 1000, function () {
+      changes++;
       items[index].classList.remove('is-active');
       index = (index + 1) % N;
       items[index].classList.add('is-active');
@@ -800,24 +821,26 @@
         yPercent: -(100 / N) * index,
         duration: STEP_S,
         ease: window.BRAND_EASE,
-        onComplete: rotatorLoop
+        onComplete: final ? null : rotatorLoop
       });
+      if (final) outro();
     });
   }
 
-  /* ---- outro: logo rises in two stages, text/list fade, then the whole
-     preloader slides away to reveal the real page -------------------- */
+  /* ---- outro: the last phrase gets a beat to be read while the wall
+     cracks, then the copy goes with the wall ----------------------------- */
   function outro() {
     cursorTween.kill();
     gsap.set(cursor, { opacity: 1 });
 
-    var tl = gsap.timeline({ onComplete: finish });
+    if (!wall) {
+      /* no canvas support: the original slide-away exit */
+      gsap.timeline({ onComplete: finish })
+        .to(root, { yPercent: -100, duration: 0.8, ease: window.BRAND_EASE }, '+=0.8');
+      return;
+    }
 
-    tl.to(logo, { top: '75%', duration: 0.7, ease: window.BRAND_EASE })
-      .to([textEl, rotatorEl], { opacity: 0, duration: 0.4 }, '-=0.15')
-      .to(logo, { top: '48.6%', duration: 0.7, ease: window.BRAND_EASE }, '<')
-      .to({}, { duration: 0.4 })
-      .to(root, { yPercent: -100, duration: 0.8, ease: window.BRAND_EASE });
+    gsap.to([textEl, rotatorEl], { opacity: 0, duration: 0.3, delay: 0.6 });
   }
 
   rotatorLoop();
@@ -1088,7 +1111,52 @@
 
 <script>
 /* ==========================================================================
-   Text reveals: line-mask for section headings, letter stagger for one
+   PunchReveal: the headline entrance shared by the hero and every section
+   heading. Letters rise out of a mask with a slight tilt, then the split
+   is reverted so no mask can clip the glyphs once the text is at rest.
+   ========================================================================== */
+window.PunchReveal = {
+  prepare: function (el) {
+    /* a flex row (the About headline lines) turns every word into its own
+       flex item, which swallows the spaces between them; reverting then
+       puts the spaces back and the text jumps sideways. Giving the content
+       a single block wrapper keeps normal inline spacing the whole way
+       through (one flex item in, one flex item out: same layout). */
+    var cs = getComputedStyle(el);
+    var target = el;
+    if (cs.display.indexOf('flex') > -1 && cs.flexDirection.indexOf('row') === 0) {
+      target = document.createElement('span');
+      target.style.display = 'block';
+      while (el.firstChild) target.appendChild(el.firstChild);
+      el.appendChild(target);
+    }
+    var split = new SplitText(target, { type: 'words,chars', mask: 'chars' });
+    /* the display face's glyphs overshoot their boxes: give each mask some
+       room (offset by negative margins, so the layout doesn't move) */
+    if (split.masks && split.masks.length) {
+      gsap.set(split.masks, { padding: '0.14em 0.08em', margin: '-0.14em -0.08em' });
+    }
+    gsap.set(split.chars, { yPercent: 125, rotate: 4, transformOrigin: '0% 100%' });
+    return split;
+  },
+  play: function (split, delay) {
+    var n = split.chars.length || 1;
+    return gsap.to(split.chars, {
+      yPercent: 0,
+      rotate: 0,
+      duration: 1.15,
+      ease: 'expo.out',
+      stagger: Math.min(0.035, 0.7 / n),   /* long lines don't drag on */
+      delay: delay || 0,
+      onComplete: function () { split.revert(); }
+    });
+  }
+};
+</script>
+<script>
+/* ==========================================================================
+   Text reveals: section headings share the hero headline's entrance.
+   (Previously: line-mask for section headings, letter stagger for one
    accent word — see the preloader script above for the same char pattern
    applied to the "You're in the right place if" line.
    ========================================================================== */
@@ -1109,40 +1177,103 @@
   fontsReady.then(setupReveals);
 
   function setupReveals() {
-    /* ---- pattern: line reveal, for section headings that currently just
-       appear with no animation of their own ------------------------------ */
-    function revealLines(selector) {
-      document.querySelectorAll(selector).forEach(function (heading) {
-        var split = new SplitText(heading, { type: 'lines', linesClass: 'line' });
-        gsap.set(split.lines, { yPercent: 110 });
-        gsap.to(split.lines, {
-          yPercent: 0,
-          duration: 0.9,
-          stagger: 0.08,
-          ease: window.BRAND_EASE,
-          scrollTrigger: { trigger: heading, start: 'top 85%' }
-        });
-      });
-    }
+    /* every display heading uses the same entrance as the hero headline
+       (PunchReveal, defined just above), played once as it scrolls into
+       view. Process titles are left out: the pinned Process section
+       animates them itself. */
+    var HEADINGS = [
+      '.about__h1-line1', '.about__h1-line2',
+      '.approach__h1',
+      '.presvcs__title',
+      '.svc-card__title',
+      '.work__h1',
+      '.cta__h1',
+      '.cta2__title'
+    ].join(', ');
 
-    revealLines('.svc-card__title');
-    revealLines('.work__h1');
-    revealLines('.cta__h1');
-
-    /* ---- pattern: letter stagger, used sparingly — just the one accent
-       word in the closing CTA headline ("impossible") -------------------- */
-    var accent = document.querySelector('.cta2__accent');
-    if (accent) {
-      var accentSplit = new SplitText(accent, { type: 'chars' });
-      gsap.from(accentSplit.chars, {
-        opacity: 0,
-        yPercent: 100,
-        stagger: 0.02,
-        duration: 0.6,
-        ease: window.BRAND_EASE,
-        scrollTrigger: { trigger: accent, start: 'top 85%' }
+    document.querySelectorAll(HEADINGS).forEach(function (heading) {
+      var split = window.PunchReveal.prepare(heading);
+      ScrollTrigger.create({
+        trigger: heading,
+        start: 'top 88%',
+        once: true,
+        onEnter: function () { window.PunchReveal.play(split); }
       });
-    }
+    });
+  }
+})();
+</script>
+
+<script>
+/* ==========================================================================
+   Hero: entrance + scroll depth
+   1. small elements first (nav, tags, leads, buttons): soft scale + fade
+   2. then the four headline words: letters rise out of a mask with a
+      slight tilt, word by word
+   3. on scroll, as the next section slides over the sticky hero, the
+      halftone hands sink back a little
+   It starts on the wall break (the 'punch:reveal' event) or right away when
+   there's no preloader (repeat visit in the same session).
+   ========================================================================== */
+(function () {
+  var html = document.documentElement;
+  var hero = document.querySelector('.hero');
+  var pending = html.classList.contains('hero-intro-pending');
+  function unhide() { html.classList.remove('hero-intro-pending'); }
+
+  if (!hero || typeof gsap === 'undefined' || typeof SplitText === 'undefined') { unhide(); return; }
+  gsap.registerPlugin(SplitText, ScrollTrigger);
+
+  var smalls = hero.querySelectorAll('.hero__logo, .hero__nav-link, .hero__social, .hero__call, .hero__menu, .hero__tag, .hero__lead, .hero__scroll');
+  var words = Array.prototype.slice.call(hero.querySelectorAll('.hero__word'));
+  var waitForBreak = !!document.getElementById('preloader');
+  var ready = false, broke = !waitForBreak, played = false;
+  var splits = [];
+
+  if (pending) {
+    window.addEventListener('punch:reveal', function () { broke = true; maybePlay(); }, { once: true });
+    /* safety: never leave the hero hidden if the break event never fires */
+    setTimeout(function () { broke = true; maybePlay(); }, 9000);
+
+    var fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+    fontsReady.then(function () {
+      splits = words.map(function (w) { return window.PunchReveal.prepare(w); });
+      gsap.set(smalls, { autoAlpha: 0, scale: 0.88, y: 6 });
+      unhide();
+      ready = true;
+      maybePlay();
+    });
+  }
+
+  function maybePlay() {
+    if (played || !ready || !broke) return;
+    played = true;
+
+    /* on the wall break the hero is still mostly covered by flying tiles:
+       give the holes a moment to open before the copy arrives */
+    var tl = gsap.timeline({ delay: waitForBreak ? 0.25 : 0.1 });
+
+    tl.to(smalls, {
+      autoAlpha: 1, scale: 1, y: 0,
+      duration: 0.9,
+      ease: window.BRAND_EASE,
+      stagger: { each: 0.04, from: 'start' },
+      clearProps: 'transform'
+    }, 0);
+
+    splits.forEach(function (sp, i) {
+      tl.add(window.PunchReveal.play(sp), 0.45 + i * 0.14);
+    });
+  }
+
+  /* on scroll the halftone hands sink back a little as the next section
+     slides over the sticky hero (the copy itself stays put) */
+  var next = hero.nextElementSibling;
+  var dots = hero.querySelector('.hero__dots');
+  if (next && dots && typeof ScrollTrigger !== 'undefined' &&
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    gsap.to(dots, { yPercent: 12, scale: 0.96, ease: 'none',
+      scrollTrigger: { trigger: next, start: 'top bottom', end: 'top top', scrub: true } });
   }
 })();
 </script>
