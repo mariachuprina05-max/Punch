@@ -26,6 +26,33 @@
      flashing in a fallback face first */
   .preloader:not(.is-font-ready) .preloader__text { visibility: hidden; }
 
+  /* preloader copy: the headline at the same size as the site's headings,
+     the rotating phrase right under it, both centred as one stack */
+  .preloader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(1rem, 2.4vw, 2.25rem);
+    padding-inline: 6.4%;
+  }
+  .preloader__text,
+  .preloader__rotator {
+    position: static;
+    left: auto;
+    top: auto;
+    flex: none;
+  }
+  .preloader__text {
+    width: auto;
+    max-width: 100%;
+    font-size: min(14.933vw, 9.375rem);   /* same as the site's headings: 150px desktop, ~58px @390 */
+    line-height: var(--display-lh);
+    letter-spacing: 0.02em;
+    text-align: center;
+    text-wrap: balance;   /* on phones: two even lines, no lonely "IF" */
+  }
+
   /* bottom fade, per the Figma "Gradient_bottom" layer: taller, and solid
      brand yellow from its midpoint down, so the leads and "Scroll" sit on
      a clean backing above the halftone */
@@ -1168,7 +1195,20 @@
    ========================================================================== */
 window.PunchReveal = {
   prepare: function (el) {
-    var split = new SplitText(el, { type: 'words,chars', mask: 'chars' });
+    /* a flex row (the About headline lines) turns every word into its own
+       flex item, which swallows the spaces between them; reverting then
+       puts the spaces back and the text jumps sideways. Giving the content
+       a single block wrapper keeps normal inline spacing the whole way
+       through (one flex item in, one flex item out: same layout). */
+    var cs = getComputedStyle(el);
+    var target = el;
+    if (cs.display.indexOf('flex') > -1 && cs.flexDirection.indexOf('row') === 0) {
+      target = document.createElement('span');
+      target.style.display = 'block';
+      while (el.firstChild) target.appendChild(el.firstChild);
+      el.appendChild(target);
+    }
+    var split = new SplitText(target, { type: 'words,chars', mask: 'chars' });
     /* the display face's glyphs overshoot their boxes: give each mask some
        room (offset by negative margins, so the layout doesn't move) */
     if (split.masks && split.masks.length) {
