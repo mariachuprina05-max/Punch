@@ -691,6 +691,18 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/CustomEase.min.js"></script>
 <script src="js/punch-hands-dots.js"></script>
 <script src="js/punch-wall.js"></script>
+<script src="js/pixel-trail.js"></script>
+<script>
+  /* cursor: orange pixel trail (brand second colour) over the whole page */
+  PixelTrail.mount({
+    gridSize: 56,
+    trailSize: 0.06,
+    maxAge: 350,
+    interpolate: 5,
+    color: '--c-brand-second',
+    gooey: 1
+  });
+</script>
 <script>
 /* ==========================================================================
    Motion system: one smooth-scroll engine (Lenis) + one shared easing curve
