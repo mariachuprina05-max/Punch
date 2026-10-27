@@ -90,7 +90,8 @@
       W = Math.max(1, Math.round(r.width)); H = Math.max(1, Math.round(r.height));
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
-      cell = Math.min(32, Math.max(14, W / 46));            /* ~31px at 1440, ~14px on phones */
+      /* same pitch as the preloader wall: ~13px at 1440x810, ~7-8px on phones */
+      cell = Math.max(7, Math.round(Math.sqrt(W * H / 6500)));
       cols = Math.ceil(W / cell); rows = Math.ceil(H / cell);
       F = new Float32Array((cols + 2) * (rows + 2));
     }
@@ -100,7 +101,7 @@
       var rect = host.getBoundingClientRect();
       var scroll = -rect.top;                                 /* the field drifts as the page scrolls past */
       var z = t * o.speed;
-      var FREQ = 1 / 13;                                      /* ~13 cells per feature */
+      var FREQ = cell / 380;                                  /* features ~380px wide, whatever the cell size */
       var stride = cols + 2;
 
       pointer.x += (pointer.tx - pointer.x) * 0.12;
@@ -132,14 +133,14 @@
           var f = F[k];
           var gx = (F[k + 1] - F[k - 1]) * 0.5, gy = (F[k + stride] - F[k - stride]) * 0.5;
           /* the cells lean away from the slope, like the wall in the preloader */
-          var cx = (i + 0.5) * cell - gx * cell * 2.2, cy = (j + 0.5) * cell - gy * cell * 2.2;
+          var cx = (i + 0.5) * cell - gx * 90, cy = (j + 0.5) * cell - gy * 90;
           /* distance to the contour, in cells (field difference / slope), so
              the rings keep the same thickness wherever the field is flat */
           var d = Math.abs(f - level) / Math.max(Math.sqrt(gx * gx + gy * gy), 0.004);
-          var a = 1 - smoothstep(0.4, 2.7, d);                         /* 1 on the contour, 0 far from it */
-          var half = cell * (0.045 + 0.25 * a * a);                    /* half the side of the mark */
+          var a = 1 - smoothstep(0.6, 3.6, d);                         /* 1 on the contour, 0 far from it */
+          var half = cell * (0.12 + 0.2 * a * a);                      /* half the side of the mark: ~1.6px dots up to ~8px squares */
           if (a < 0.34) {
-            dots.push(cx, cy, cell * (0.045 + 0.02 * a));
+            dots.push(cx, cy, cell * (0.12 + 0.03 * a));
           } else {
             var rot = Math.PI / 4 * (1 - smoothstep(0.55, 0.82, a));    /* diamond -> square */
             (a < 0.62 ? dias : sols).push(cx, cy, half, rot);
@@ -147,10 +148,10 @@
         }
       }
 
-      var col = rgb, A = o.alpha * (W < 700 ? 0.65 : 1);      /* quieter behind the text on phones */
+      var col = rgb, A = o.alpha * (W < 700 ? 0.8 : 1);       /* a touch quieter behind the text on phones */
       ctx.lineWidth = 1;
 
-      ctx.fillStyle = 'rgba(' + col + ',' + (0.3 * A).toFixed(3) + ')';
+      ctx.fillStyle = 'rgba(' + col + ',' + (0.09 * A).toFixed(3) + ')';
       ctx.beginPath();
       for (k = 0; k < dots.length; k += 3) ctx.rect(dots[k] - dots[k + 2], dots[k + 1] - dots[k + 2], dots[k + 2] * 2, dots[k + 2] * 2);
       ctx.fill();
@@ -167,9 +168,9 @@
         }
         if (mode === 'fill') ctx.fill(); else ctx.stroke();
       }
-      ctx.strokeStyle = 'rgba(' + col + ',' + (0.4 * A).toFixed(3) + ')';
+      ctx.strokeStyle = 'rgba(' + col + ',' + (0.17 * A).toFixed(3) + ')';
       poly(dias, 'stroke');
-      ctx.fillStyle = 'rgba(' + col + ',' + (0.5 * A).toFixed(3) + ')';
+      ctx.fillStyle = 'rgba(' + col + ',' + (0.27 * A).toFixed(3) + ')';
       poly(sols, 'fill');
     }
 
