@@ -1894,6 +1894,12 @@ img, svg { display: block; max-width: 100%; }
 
 /* ==========================================================================
    SELECTED WORK — DESKTOP ≥ 1024 px
+   Pinned block (N screens tall, the inner box sticks for one screen).
+   The head-line and the case grid sit on the 8 columns: label on 1-2,
+   line 1 from the 3rd-column guide, line 2 from the margin; case list on
+   columns 1-2, the photo centred over columns 3-5, the details on 6-8.
+   `--fit` (set by js/fit.js, 1 on tall windows) shrinks the whole body so
+   it never gets cut off by the one-screen sticky box.
    ========================================================================== */
 @media (min-width: 1024px) {
   .work__wrap {
@@ -1910,19 +1916,41 @@ img, svg { display: block; max-width: 100%; }
   .work__texture { opacity: 0.5; }
 
   .work__body {
-    gap: 5rem;             /* 80px */
-    padding: 6.25rem 3.472%;   /* 100px / 50px */
+    /* height guard (js/fit.js): everything inside shrinks by --fit, but the
+       side margins and column gutters are divided by it again so the
+       columns stay exactly on the page grid */
+    zoom: var(--fit, 1);
+    --gap-z: calc(var(--grid-gap) / var(--fit, 1));
+    gap: 5rem;                         /* 80px */
+    padding-block: 6.25rem;            /* 100px */
+    padding-inline: max(calc(var(--grid-margin) / var(--fit, 1)),
+                        calc(50% - (var(--page-w) / 2 - var(--grid-margin)) / var(--fit, 1)));
   }
 
-  .work__head-r1 {
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 9.875rem;   /* 158px */
+  /* ---- head-line: two rows on the grid ---- */
+  .work__head {
+    display: grid;
+    grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
+    column-gap: var(--gap-z);
   }
 
-  .work__head-r1 .work__h1 { text-align: left; }
+  .work__head-r1,
+  .work__head-r2 {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+    column-gap: var(--gap-z);
+    align-items: start;
+  }
 
-  .work__head-r2 { justify-content: flex-start; }
+  .work__head-r1 .work__label { grid-column: 1 / 3; }
+
+  .work__head-r1 .work__h1 {
+    grid-column: 3 / -1;      /* starts on the 3rd-column guide */
+    text-align: left;
+  }
+
+  .work__head-r2 .work__h1 { grid-column: 1 / -1; }
 
   .work__label {
     display: block;
@@ -1933,15 +1961,18 @@ img, svg { display: block; max-width: 100%; }
 
   .work__h1 { font-size: 9.375rem; white-space: nowrap; }   /* 150px */
 
+  /* ---- case grid ---- */
   .work__grid {
-    flex-direction: row;
+    display: grid;
+    grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
+    column-gap: var(--gap-z);
     align-items: center;
-    justify-content: space-between;
     height: 27.6875rem;   /* 443px */
-    gap: 2.5rem;
   }
 
   .work__list {
+    grid-column: 1 / 3;
+    justify-self: start;
     width: auto;
     flex: none;
     gap: 0.5rem;
@@ -1958,16 +1989,17 @@ img, svg { display: block; max-width: 100%; }
   .work__list-item { font-size: 1.5rem; }   /* 24px */
 
   .work__image {
-    width: 21.375rem;    /* 342px */
+    grid-column: 3 / 6;
+    justify-self: center;   /* 342px photo centred over columns 3-5 (x≈474; Figma 478) */
+    width: 21.375rem;       /* 342px */
     height: 100%;
-    flex: none;
     order: 0;
   }
 
   .work__details {
-    width: 30.5rem;   /* 488px */
+    grid-column: 6 / 9;     /* 490px, from the 6th-column guide */
+    width: auto;
     height: 100%;
-    flex: none;
   }
 
   .work__panel { justify-content: flex-start; gap: 1.5rem; }
@@ -2182,6 +2214,11 @@ img, svg { display: block; max-width: 100%; }
 
 /* ==========================================================================
    PROCESS — DESKTOP ≥ 1024 px
+   Pinned scroll-jacked block. "from idea" starts on the 3rd-column guide and
+   "to launch" on the 6th (Figma: x=389 / x=901). The card fan is as wide as
+   the content (1340px @1440) and every slot is a percentage of it, so it
+   scales with the page; the card width follows the fan too (container
+   query units). `--fit` (js/fit.js) keeps the whole body inside one screen.
    ========================================================================== */
 @media (min-width: 1024px) {
   .process {
@@ -2190,41 +2227,58 @@ img, svg { display: block; max-width: 100%; }
   }
 
   .process__body {
-    gap: 6.25rem;              /* 100px */
-    padding: 6.25rem 3.472%;   /* 100px / 50px */
+    zoom: var(--fit, 1);               /* height guard, see js/fit.js (margins and gutters are re-divided so the grid stays put) */
+    --gap-z: calc(var(--grid-gap) / var(--fit, 1));
+    gap: 6.25rem;                      /* 100px */
+    padding-block: 6.25rem;            /* 100px */
+    padding-inline: max(calc(var(--grid-margin) / var(--fit, 1)),
+                        calc(50% - (var(--page-w) / 2 - var(--grid-margin)) / var(--fit, 1)));
   }
 
   .process__head {
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 11.6875rem;   /* 187px */
+    display: grid;
+    grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
+    column-gap: var(--gap-z);
+    align-items: start;
+  }
+
+  .process__label {
+    grid-column: 1 / 3;
+    font-size: 1.125rem;   /* 18px */
   }
 
   .process__title-row {
-    flex-direction: row;
+    grid-column: 3 / -1;   /* a 6-column sub-grid from the 3rd-column guide */
+    display: grid;
+    grid-template-columns: subgrid;
+    column-gap: var(--gap-z);
     align-items: center;
-    gap: 10.6875rem;   /* 171px */
-    height: 6.75rem;   /* 108px */
+    height: 6.75rem;       /* 108px */
   }
 
-  .process__label { font-size: 1.125rem; }   /* 18px */
+  .process__intro  { grid-column: 1 / 4; }   /* "from idea": 3rd-column guide */
+  .process__outro  { grid-column: 4 / 7; }   /* "to launch": 6th-column guide */
+
   .process__title { font-size: 9.375rem; white-space: nowrap; }   /* 150px */
 
   .process__fan-wrap { overflow: visible; }
 
   .process__fan {
-    width: 83.75rem;    /* 1340px, fixed — from Figma, not recalculated */
-    height: 26.3125rem; /* 421px */
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1340 / 421;
+    container-type: inline-size;
   }
 
-  .process__slot--1 { left: 0;        top: 0.9225rem;  width: 20.0368rem; height: 24.8421rem; }
-  .process__slot--2 { left: 18.75rem; top: 0.9375rem;  width: 20.5703rem; height: 25.2698rem; }
-  .process__slot--3 { left: 36.75rem; top: 0;          width: 21.7614rem; height: 26.209rem;  }
-  .process__slot--4 { left: 57.0625rem; top: 0.625rem; width: 20.6896rem; height: 24.0231rem; }
-  .process__slot--5 { left: 72rem;    top: 0.4363rem;  width: 20.7306rem; height: 25.3975rem; }
+  /* slot geometry from Figma, as % of the fan (1340 x 421 @1440) */
+  .process__slot--1 { left: 0.0000%;  top: 3.5059%; width: 23.9245%; height: 94.4118%; }
+  .process__slot--2 { left: 22.3881%; top: 3.5629%; width: 24.5616%; height: 96.0372%; }
+  .process__slot--3 { left: 43.8806%; top: 0.0000%; width: 25.9838%; height: 99.6067%; }
+  .process__slot--4 { left: 68.1343%; top: 2.3753%; width: 24.7040%; height: 91.2992%; }
+  .process__slot--5 { left: 85.9701%; top: 1.6581%; width: 24.7530%; height: 96.5226%; }
 
   .process__card {
-    width: 20rem;   /* 320px, fixed */
+    width: 23.8806cqw;   /* 320px of the 1340px fan */
     gap: 1.5rem;
     padding: 1.25rem;
     border-radius: 1.25rem;
