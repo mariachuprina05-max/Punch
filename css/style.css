@@ -70,6 +70,13 @@
      CustomEase("brandEase") registered in index.html, so CSS transitions
      and GSAP tweens read as one system instead of mismatched defaults. */
   --ease-brand: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* mobile column: the 375 frame is 23.4375rem wide. Below 480px everything
+     scales with the width (root font-size, see below); beyond that the column
+     stays put and is centred, section backgrounds still run edge to edge. */
+  --m-col: 23.4375rem;
+  --m-edge:   max(1.5rem,     calc(50% - (var(--m-col) / 2 - 1.5rem)));       /* 24px @375 */
+  --m-edge-s: max(1.40625rem, calc(50% - (var(--m-col) / 2 - 1.40625rem)));   /* 22.5px @375 */
 }
 
 /* --------------------------------------------------------------------------
@@ -91,6 +98,11 @@ html { -webkit-text-size-adjust: 100%; }
      beyond 1920  : stops at 21.33px; the page stays centred (--grid-pad)
    Media queries below are in px on purpose: they do not depend on the root.
    -------------------------------------------------------------------------- */
+/* Mobile: 16px at 375 (the Figma frame), proportional from 320 up to 480 */
+@media (max-width: 767.98px) {
+  html { font-size: clamp(13.6px, calc(100vw / 23.4375), 20.48px); }
+}
+
 @media (min-width: 768px) {
   html {
     font-size: min(21.3333px, max(calc(100vw / 90), calc(13.5px + (100vw - 768px) * 0.0037202)));
@@ -127,19 +139,19 @@ img, svg { display: block; max-width: 100%; }
   /* ---- fluid type scale ------------------------------------------------ */
   /* Mobile/Heading/Hero — 130px @375 (34.667vw), capped so it stays sane
      on wide phones / small tablets before the desktop layout kicks in      */
-  --fs-display: min(34.667vw, 10.5rem);
+  --fs-display: 8.125rem;
 
   /* gap between the head-line rows: ~18px @130px */
   --row-gap: calc(var(--fs-display) * 0.139);
 
   /* Mobile/Body/Label   — 16px @375 (4.267vw)                              */
-  --fs-label: clamp(0.875rem, 4.267vw, 1.125rem);
+  --fs-label: 1rem;
   /* Mobile/Links        — 16px @375                                        */
-  --fs-link: clamp(0.875rem, 4.267vw, 1.125rem);
+  --fs-link: 1rem;
   /* Mobile/Body/Paragraph — 14px @375 (3.733vw)                            */
-  --fs-text: clamp(0.8125rem, 3.733vw, 1rem);
+  --fs-text: 0.875rem;
   /* CTA — 24px @375 (6.4vw)                                                */
-  --fs-cta: clamp(1.25rem, 6.4vw, 1.75rem);
+  --fs-cta: 1.5rem;
 
   /* small optical nudge for the "( … )" markers next to the head-line      */
   --tag-nudge: 0.375em;
@@ -147,8 +159,8 @@ img, svg { display: block; max-width: 100%; }
 
   /* ---- layout ---------------------------------------------------------- */
   /* all paddings are % of the section width → they scale with the viewport */
-  padding-inline: 6.4%;        /*  24px @375 */
-  padding-block: 5.6% 18.13%;  /*  21px / 68px @375 */
+  padding-inline: var(--m-edge);        /*  24px @375 */
+  padding-block: 1.3125rem 4.25rem;  /*  21px / 68px @375 */
 
   min-height: 100svh;
   display: flex;
@@ -205,7 +217,7 @@ img, svg { display: block; max-width: 100%; }
 
 .hero__logo {
   grid-column: 1 / 2;
-  inline-size: min(21.6vw, 5.0625rem);  /* 81px @375 */
+  inline-size: 5.0625rem;  /* 81px @375 */
   color: var(--c-brand-second);
 }
 
@@ -524,11 +536,11 @@ img, svg { display: block; max-width: 100%; }
    -------------------------------------------------------------------------- */
 .about {
   /* Display size — 56px @375 (14.933vw) */
-  --about-fs-display: min(14.933vw, 9.375rem); /* 9.375rem = 150px desktop cap */
+  --about-fs-display: 3.5rem; /* 9.375rem = 150px desktop cap */
   /* Body sizes */
-  --about-fs-xl:  clamp(3.125rem,  8.533vw, 6.25rem);   /* 50px mob → 100px desk */
-  --about-fs-body: clamp(0.875rem, 3.733vw, 1.125rem);  /* 14px mob → 18px desk  */
-  --about-fs-label: clamp(0.625rem, 2.667vw, 1.125rem); /* 10px mob → 18px desk  */
+  --about-fs-xl:  3.125rem;   /* 50px mob → 100px desk */
+  --about-fs-body: 0.875rem;  /* 14px mob → 18px desk  */
+  --about-fs-label: max(10px, 0.625rem); /* 10px mob → 18px desk  */
   --about-ls-display: 0.02em;   /* 2% letter-spacing on Bootzy */
 }
 
@@ -541,8 +553,8 @@ img, svg { display: block; max-width: 100%; }
   border-radius: 50px 50px 0 0;
   background-color: var(--c-bg);
   color: var(--c-white);
-  padding-inline: 6.4%;            /* 24px @375  */
-  padding-block: 16% 10.67%;       /* 60px / 40px @375 */
+  padding-inline: var(--m-edge);            /* 24px @375  */
+  padding-block: 3.75rem 2.5rem;       /* 60px / 40px @375 */
 }
 
 /* --------------------------------------------------------------------------
@@ -594,7 +606,7 @@ img, svg { display: block; max-width: 100%; }
   z-index: 2;
   display: flex;
   flex-direction: column;
-  gap: 10.67vw;            /* ~40px @375 */
+  gap: 2.5rem;            /* ~40px @375 */
 }
 
 /* --------------------------------------------------------------------------
@@ -683,7 +695,7 @@ img, svg { display: block; max-width: 100%; }
 .about__stats {
   display: flex;
   flex-direction: column;
-  gap: 6.13vw;              /* ~23px @375 */
+  gap: 1.4375rem;              /* ~23px @375 */
   padding-inline-start: 7.7%;  /* 29px / 375 */
 }
 
@@ -853,7 +865,7 @@ img, svg { display: block; max-width: 100%; }
   overflow: hidden;              /* clips texture, keeps section screen-wide */
   background-color: var(--c-bg);
   color: var(--c-white);
-  padding-inline: 6.4%;         /* % of own width → scales with screen */
+  padding-inline: var(--m-edge);         /* % of own width → scales with screen */
   padding-block: 2.5rem 3.75rem; /* 40px / 60px */
 }
 
@@ -914,7 +926,7 @@ img, svg { display: block; max-width: 100%; }
 
 .approach__label {
   font-family: var(--ff-text);
-  font-size: 0.625rem;   /* 10px mobile */
+  font-size: max(10px, 0.625rem);   /* 10px mobile */
   line-height: 1.1;
   text-transform: uppercase;
 }
@@ -1020,7 +1032,7 @@ img, svg { display: block; max-width: 100%; }
 
 .approach__card-text {
   font-family: var(--ff-text);
-  font-size: 0.5rem;      /* 8px mobile */
+  font-size: max(9px, 0.5rem);   /* 8px in the frame; 9px floor on small phones */
   line-height: 1.2;
   letter-spacing: -0.01em;
 }
@@ -1161,7 +1173,7 @@ img, svg { display: block; max-width: 100%; }
   z-index: 0;
   overflow: hidden;
   background: var(--c-brand);
-  padding-inline: 6%;
+  padding-inline: var(--m-edge-s);
   padding-block: 4rem;
   display: flex;
   flex-direction: column;
@@ -1194,7 +1206,7 @@ img, svg { display: block; max-width: 100%; }
 .presvcs__title {
   font-family: var(--ff-display);
   /* 150 px @ 1440 px → 10.42 vw, floored at 2.25 rem on tiny screens */
-  font-size: clamp(2.25rem, 10.42vw, 9.375rem);
+  font-size: 3.5rem;
   line-height: var(--display-lh);
   letter-spacing: 0.02em;
   color: var(--c-black);
@@ -1211,12 +1223,12 @@ img, svg { display: block; max-width: 100%; }
   gap: 0.5rem;
   /* gives the brackets' em-based height (below) something to scale
      against — matches .presvcs__standout-text's own font-size */
-  font-size: clamp(2.25rem, 10.42vw, 9.375rem);
+  font-size: 3.5rem;
 }
 
 .presvcs__standout-text {
   font-family: var(--ff-display);
-  font-size: clamp(2.25rem, 10.42vw, 9.375rem);
+  font-size: 3.5rem;
   line-height: var(--display-lh);
   letter-spacing: 0.02em;
   color: var(--c-brand-second);
@@ -1310,7 +1322,7 @@ img, svg { display: block; max-width: 100%; }
   top: calc(var(--i) * var(--peek));
   overflow: hidden;
   border-radius: 2rem 2rem 0 0;
-  padding: 3.75rem 6.4% 5rem;   /* 60px / 80px @375, sides 24px */
+  padding: 3.75rem var(--m-edge) 5rem;   /* 60px / 80px @375, sides 24px */
   min-height: 30rem;
 }
 
@@ -1380,7 +1392,7 @@ img, svg { display: block; max-width: 100%; }
   border-radius: 0.4375rem;   /* 7px */
   padding: 0.25rem 0.5rem;
   font-family: var(--ff-text);
-  font-size: clamp(0.875rem, 3.7vw, 1.125rem);
+  font-size: 0.875rem;
   line-height: 1.5;
   letter-spacing: -0.02em;
   white-space: nowrap;
@@ -1390,7 +1402,7 @@ img, svg { display: block; max-width: 100%; }
 
 .svc-card__desc {
   font-family: var(--ff-text);
-  font-size: clamp(0.875rem, 3.7vw, 1.125rem);
+  font-size: 0.875rem;
   line-height: 1.2;
   letter-spacing: -0.01em;
   opacity: 0.6;
@@ -1401,9 +1413,9 @@ img, svg { display: block; max-width: 100%; }
 .svc-card__title {
   font-family: var(--ff-display);
   font-weight: 400;
-  font-size: clamp(2.25rem, 10.42vw, 9.375rem);
+  font-size: 3.5rem;
   line-height: var(--display-lh);
-  letter-spacing: 3px;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 
@@ -1485,7 +1497,7 @@ img, svg { display: block; max-width: 100%; }
   overflow: hidden;
   background: var(--c-bg);
   color: var(--c-white);
-  padding: 4rem 6.4% 5rem;
+  padding: 4rem var(--m-edge) 5rem;
 }
 
 .cta__texture {
@@ -1520,7 +1532,7 @@ img, svg { display: block; max-width: 100%; }
 .cta__h1 {
   font-family: var(--ff-display);
   font-weight: 400;
-  font-size: clamp(2.25rem, 10.42vw, 9.375rem);
+  font-size: 3.5rem;
   line-height: var(--display-lh);
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -1533,7 +1545,7 @@ img, svg { display: block; max-width: 100%; }
   order: 3;
   margin-top: 1.5rem;
   font-family: var(--ff-text);
-  font-size: clamp(0.875rem, 3.7vw, 1.125rem);
+  font-size: 0.875rem;
   line-height: 1.2;
   letter-spacing: -0.01em;
   opacity: 0.6;
@@ -1692,7 +1704,7 @@ img, svg { display: block; max-width: 100%; }
   flex-direction: column;
   gap: 2.5rem;
   width: 100%;
-  padding: 2.5rem 6.4%;
+  padding: 2.5rem var(--m-edge);
 }
 
 /* --------------------------------------------------------------------------
@@ -1714,7 +1726,7 @@ img, svg { display: block; max-width: 100%; }
 
 .work__label {
   font-family: var(--ff-text);
-  font-size: 0.625rem;   /* 10px mobile */
+  font-size: max(10px, 0.625rem);   /* 10px mobile */
   line-height: 1.1;
   text-transform: uppercase;
   display: none;   /* the full "(Selected work)" label is desktop-only */
@@ -1874,7 +1886,7 @@ img, svg { display: block; max-width: 100%; }
 
 .work__field-text {
   font-family: var(--ff-text);
-  font-size: 0.75rem;   /* 12px mobile */
+  font-size: max(11px, 0.75rem);   /* 12px mobile */
   line-height: 1.2;
   letter-spacing: -0.01em;
   margin: 0;
@@ -1895,7 +1907,7 @@ img, svg { display: block; max-width: 100%; }
   margin: 0;
   padding: 0;
   font-family: var(--ff-text);
-  font-size: 0.75rem;   /* 12px mobile */
+  font-size: max(11px, 0.75rem);   /* 12px mobile */
   line-height: 1.2;
   letter-spacing: -0.01em;
 }
@@ -2075,7 +2087,7 @@ img, svg { display: block; max-width: 100%; }
   flex-direction: column;
   gap: 3rem;
   width: 100%;
-  padding: 2.5rem 6.4%;
+  padding: 2.5rem var(--m-edge);
 }
 
 /* --------------------------------------------------------------------------
@@ -2089,7 +2101,7 @@ img, svg { display: block; max-width: 100%; }
 
 .process__label {
   font-family: var(--ff-text);
-  font-size: 0.625rem;   /* 10px mobile */
+  font-size: max(10px, 0.625rem);   /* 10px mobile */
   line-height: 1.1;
   text-transform: uppercase;
 }
@@ -2314,7 +2326,7 @@ img, svg { display: block; max-width: 100%; }
   background: var(--c-brand);
   color: var(--c-black);
   border-radius: 1.875rem 1.875rem 0 0;   /* 30px */
-  padding: 3.75rem 6.4% 2.5rem;   /* 60px / 40px, sides 24px @375 */
+  padding: 3.75rem var(--m-edge) 2.5rem;   /* 60px / 40px, sides 24px @375 */
 }
 
 .cta2__texture {
@@ -2534,7 +2546,7 @@ img, svg { display: block; max-width: 100%; }
   display: flex;
   flex-direction: column;
   gap: 2.5rem;
-  padding: 2.5rem 6.4%;
+  padding: 2.5rem var(--m-edge);
 }
 
 .footer__col--left {
@@ -2601,6 +2613,9 @@ img, svg { display: block; max-width: 100%; }
   gap: 6.125rem;   /* 98px mobile, from the Figma column spacing */
 }
 
+.footer__short { display: inline; }
+.footer__full  { display: none; }
+
 .footer__link-group {
   display: flex;
   flex-direction: column;
@@ -2609,7 +2624,7 @@ img, svg { display: block; max-width: 100%; }
 
 .footer__link-label {
   font-family: var(--ff-text);
-  font-size: 0.625rem;   /* 10px mobile */
+  font-size: max(10px, 0.625rem);   /* 10px mobile */
   line-height: 1.1;
   text-transform: uppercase;
   opacity: 0.8;
@@ -2644,6 +2659,9 @@ img, svg { display: block; max-width: 100%; }
 
 .footer__legal { display: none; }   /* dropped entirely on the mobile frame */
 
+/* mobile frame: the links come first, then the logo with the copyright line */
+.footer__col--right { order: -1; }
+
 /* ==========================================================================
    FOOTER — DESKTOP ≥ 768 px
    Left block on columns 1-5 (830px, Figma 822), right block on columns 6-8
@@ -2665,6 +2683,10 @@ img, svg { display: block; max-width: 100%; }
   }
 
   .footer__call { display: flex; }
+
+  .footer__col--right { order: 0; }
+  .footer__short { display: none; }
+  .footer__full  { display: inline; }
 
   .footer__copyright { order: 1; }
   .footer__logo { order: 2; width: 95.2%; }   /* 790px of the 830px block, as in Figma */
@@ -2765,7 +2787,7 @@ html.no-scroll body { overflow: hidden; height: 100%; }
   width: 88%;
   font-family: var(--ff-display);
   font-weight: 400;
-  font-size: clamp(1.75rem, 8vw, 2.5rem);
+  font-size: 1.875rem;
   line-height: 1.3;
   letter-spacing: 0.01em;
   color: var(--c-white);
@@ -2784,7 +2806,7 @@ html.no-scroll body { overflow: hidden; height: 100%; }
 }
 
 .preloader__bracket {
-  height: clamp(1.75rem, 8vw, 2.5rem);
+  height: 1.875rem;
   width: auto;
   flex: none;
 }
@@ -2793,10 +2815,10 @@ html.no-scroll body { overflow: hidden; height: 100%; }
 
 .preloader__rotator-window {
   width: max-content;
-  min-width: min(68vw, 22.5rem);
+  min-width: 15.9375rem;
   height: 1.5em;
   overflow: hidden;
-  font-size: clamp(0.875rem, 4vw, 1.125rem);
+  font-size: 0.9375rem;
 }
 
 .preloader__rotator-track {
@@ -2886,8 +2908,8 @@ html.no-scroll body { overflow: hidden; height: 100%; }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: clamp(1rem, 2.4vw, 2.25rem);
-  padding-inline: 6.4%;
+  gap: 1rem;
+  padding-inline: var(--m-edge);
 }
 .preloader__text,
 .preloader__rotator {
@@ -2899,7 +2921,7 @@ html.no-scroll body { overflow: hidden; height: 100%; }
 .preloader__text {
   width: auto;
   max-width: 100%;
-  font-size: min(14.933vw, 9.375rem);   /* same as the site's headings: 150px desktop, ~58px @390 */
+  font-size: 3.5rem;   /* same as the site's headings: 150px desktop, ~58px @390 */
   line-height: var(--display-lh);
   letter-spacing: 0.02em;
   text-align: center;
@@ -3101,3 +3123,45 @@ html.has-noise .work__texture {
   .work__field-text,
   .work__result-list { font-size: 1rem; }
 }
+
+/* ==========================================================================
+   MOBILE (< 768) — refinements against the 375 Figma frame. Keep LAST.
+   ========================================================================== */
+@media (max-width: 767.98px) {
+  /* Hero: the left lead is 109px wide in the frame, two lines */
+  .hero__lead--left { inline-size: 7.5rem; }
+
+  /* About: the stat numbers sit 56px in (frame: group at 29 + 27) */
+  .about__stat:not(.about__stat--center) { margin-inline-start: 1.6875rem; }
+  .about__stat--center .about__stat-label { padding-inline-start: 1.6875rem; }
+  .about__stat-money { gap: 0; margin-inline-start: 0.75rem; }
+
+  /* Approach: the headline is two lines, "STYLE" and the yellow words share line 2 */
+  .approach__head { display: block; }
+  .approach__head-r1,
+  .approach__head-r2 { display: contents; }
+  .approach__h1--white,
+  .approach__h1--yellow { display: inline; margin: 0; padding: 0; }
+  .approach__h1--yellow { margin-inline-start: 0.25em; }
+
+  .approach { padding-block-end: 1.5rem; }
+
+  /* Pre-services: the title wraps to two centred lines (frame: 94px tall) */
+  .presvcs__title { white-space: normal; text-align: center; }
+
+  /* Services: the tags are 12px chips, 22px tall (frame) */
+  .svc-card__tag { font-size: 0.75rem; line-height: 0.875rem; }
+
+  /* Process: the two title words keep a gap, the card strip starts at the
+     screen edge (frame: cards x = -24) */
+  .process__title-row { flex-wrap: nowrap; gap: 0.4375rem; }
+  .process__fan-wrap { margin-inline: calc(var(--m-edge) * -1); }
+
+  /* Form: the frame left-aligns the field text */
+  .cta2__input { text-align: left; }
+
+  /* Approach cards: the wrapper carries the width, the card fills it */
+  .approach__cw { width: 35.84%; }
+  .approach__card { width: 100%; }
+}
+
