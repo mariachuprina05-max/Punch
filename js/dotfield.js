@@ -78,7 +78,7 @@
     host.insertBefore(layer, host.firstChild);
     var ctx = canvas.getContext('2d');
     if (!ctx) { host.removeChild(layer); return null; }
-    document.documentElement.classList.add('has-dotfield');
+    host.classList.add('has-dotfield');
 
     var rgb = resolveColor(o.color);
     var W = 0, H = 0, dpr = 1, cell = 30, cols = 0, rows = 0, F = null;
@@ -90,8 +90,8 @@
       W = Math.max(1, Math.round(r.width)); H = Math.max(1, Math.round(r.height));
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
-      /* same pitch as the preloader wall: ~13px at 1440x810, ~7-8px on phones */
-      cell = Math.max(7, Math.round(Math.sqrt(W * H / 6500)));
+      /* a little coarser than the preloader wall's pitch: ~17px at 1440x810, ~10px on phones */
+      cell = Math.max(9, Math.round(Math.sqrt(W * H / 3800)));
       cols = Math.ceil(W / cell); rows = Math.ceil(H / cell);
       F = new Float32Array((cols + 2) * (rows + 2));
     }
@@ -101,7 +101,7 @@
       var rect = host.getBoundingClientRect();
       var scroll = -rect.top;                                 /* the field drifts as the page scrolls past */
       var z = t * o.speed;
-      var FREQ = cell / 380;                                  /* features ~380px wide, whatever the cell size */
+      var FREQ = cell / 460;                                  /* features ~460px wide, whatever the cell size */
       var stride = cols + 2;
 
       pointer.x += (pointer.tx - pointer.x) * 0.12;
@@ -133,7 +133,7 @@
           var f = F[k];
           var gx = (F[k + 1] - F[k - 1]) * 0.5, gy = (F[k + stride] - F[k - stride]) * 0.5;
           /* the cells lean away from the slope, like the wall in the preloader */
-          var cx = (i + 0.5) * cell - gx * 90, cy = (j + 0.5) * cell - gy * 90;
+          var cx = (i + 0.5) * cell - gx * 110, cy = (j + 0.5) * cell - gy * 110;
           /* distance to the contour, in cells (field difference / slope), so
              the rings keep the same thickness wherever the field is flat */
           var d = Math.abs(f - level) / Math.max(Math.sqrt(gx * gx + gy * gy), 0.004);
@@ -151,7 +151,7 @@
       var col = rgb, A = o.alpha * (W < 700 ? 0.8 : 1);       /* a touch quieter behind the text on phones */
       ctx.lineWidth = 1;
 
-      ctx.fillStyle = 'rgba(' + col + ',' + (0.09 * A).toFixed(3) + ')';
+      ctx.fillStyle = 'rgba(' + col + ',' + (0.05 * A).toFixed(3) + ')';
       ctx.beginPath();
       for (k = 0; k < dots.length; k += 3) ctx.rect(dots[k] - dots[k + 2], dots[k + 1] - dots[k + 2], dots[k + 2] * 2, dots[k + 2] * 2);
       ctx.fill();
@@ -168,9 +168,9 @@
         }
         if (mode === 'fill') ctx.fill(); else ctx.stroke();
       }
-      ctx.strokeStyle = 'rgba(' + col + ',' + (0.17 * A).toFixed(3) + ')';
+      ctx.strokeStyle = 'rgba(' + col + ',' + (0.1 * A).toFixed(3) + ')';
       poly(dias, 'stroke');
-      ctx.fillStyle = 'rgba(' + col + ',' + (0.27 * A).toFixed(3) + ')';
+      ctx.fillStyle = 'rgba(' + col + ',' + (0.16 * A).toFixed(3) + ')';
       poly(sols, 'fill');
     }
 
@@ -210,7 +210,7 @@
         io.disconnect();
         window.removeEventListener('pointermove', onMove);
         if (layer.parentNode) layer.parentNode.removeChild(layer);
-        document.documentElement.classList.remove('has-dotfield');
+        host.classList.remove('has-dotfield');
       }
     };
   }

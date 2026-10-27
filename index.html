@@ -714,16 +714,18 @@
       '.cta', '.work__sticky', '.process', '.footer'
     ],
     patternSize: 200,
-    patternScaleX: 1,
-    patternScaleY: 1,
+    patternScaleX: 2,
+    patternScaleY: 2,
     patternRefreshInterval: 2,
-    patternAlpha: 15
+    patternAlpha: 18
   });
 </script>
 <script src="js/dotfield.js"></script>
 <script>
-  /* About background: the halftone animation, drawn in code (was a GIF/PNG) */
+  /* About and Process backgrounds: the halftone animation, drawn in code
+     (was a GIF/PNG) */
   DotField.mount({ target: '.about', color: '--c-brand', level: 0.5, speed: 0.14 });
+  DotField.mount({ target: '.process', color: '--c-brand', level: 0.5, speed: 0.14 });
 </script>
 <script>
 /* ==========================================================================

@@ -82,6 +82,7 @@
       c.setTransform(1, 0, 0, 1, 0, 0);
       c.clearRect(0, 0, l.canvas.width, l.canvas.height);
       c.setTransform(sx, 0, 0, sy, 0, 0);
+      c.imageSmoothingEnabled = false;            /* magnified grain stays square and crisp */
       c.fillStyle = c.createPattern(tile, 'repeat');
       c.fillRect(0, 0, l.canvas.width / sx, l.canvas.height / sy);
       l.dirty = false;

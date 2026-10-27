@@ -2783,4 +2783,8 @@ html.has-noise .work__texture {
   width: 100%;
   height: 100%;
 }
-html.has-dotfield .about::before { display: none; }
+.about.has-dotfield::before,
+.process.has-dotfield .process__texture { display: none; }
+
+/* the yellow service card is the one yellow block without the RGB screen texture */
+.svc-card--yellow .svc-card__texture { display: none; }
