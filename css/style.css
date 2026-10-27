@@ -2931,7 +2931,7 @@ html.no-scroll body { overflow: hidden; height: 100%; }
 /* from 768 up the preloader copy follows the page width like every other
    heading (150px @1440, 200px @1920, 80px @768) */
 @media (min-width: 768px) {
-  .preloader { gap: max(1rem, calc(34.56 * var(--dpx))); }
+  .preloader { gap: max(1rem, calc(34.56 * var(--dpx))); padding-inline: 6.4%; }
   .preloader__text { font-size: calc(150 * var(--dpx)); }
   .preloader__bracket { height: max(2rem, calc(50 * var(--dpx))); }
   .preloader__rotator-window {
@@ -3156,6 +3156,16 @@ html.has-noise .work__texture {
      screen edge (frame: cards x = -24) */
   .process__title-row { flex-wrap: nowrap; gap: 0.4375rem; }
   .process__fan-wrap { margin-inline: calc(var(--m-edge) * -1); }
+
+  /* Work and Process are flush with their neighbours: no rounded top corners
+     (they showed the yellow section behind) */
+  .work__sticky,
+  .process { border-radius: 0; }
+
+  /* Process: every card is already out; the strip is panned by the scroll
+     (see the Process script). Cards are wide, about two fit the screen. */
+  .process__fan-wrap { overflow: hidden; }
+  .process { min-height: 100svh; }   /* pinned: fills the screen, so nothing shows through behind it */
 
   /* Form: the frame left-aligns the field text */
   .cta2__input { text-align: left; }
