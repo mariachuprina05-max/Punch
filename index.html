@@ -703,6 +703,23 @@
     gooey: 1
   });
 </script>
+<script src="js/noise.js"></script>
+<script>
+  /* film grain on every non-yellow background; yellow blocks (hero,
+     "Three ways", yellow service card, final form) keep the RGB screen
+     texture. Add or remove selectors here to change where it sits. */
+  Noise.mount({
+    targets: [
+      '.about', '.approach', '.svc-card--dark', '.svc-card--orange',
+      '.cta', '.work__sticky', '.process', '.footer'
+    ],
+    patternSize: 200,
+    patternScaleX: 1,
+    patternScaleY: 1,
+    patternRefreshInterval: 2,
+    patternAlpha: 15
+  });
+</script>
 <script>
 /* ==========================================================================
    Motion system: one smooth-scroll engine (Lenis) + one shared easing curve

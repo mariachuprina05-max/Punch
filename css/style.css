@@ -2737,3 +2737,31 @@ html.no-scroll body { overflow: hidden; height: 100%; }
   height: 100%;
   pointer-events: none;
 }
+
+/* --------------------------------------------------------------------------
+   Film grain (js/noise.js): one canvas layer behind the content of every
+   non-yellow block. Where it is active, the old RGB screen texture of those
+   blocks is switched off; yellow blocks keep theirs. If the script doesn't
+   run, html.has-noise is never set and the old textures stay.
+   -------------------------------------------------------------------------- */
+.noise-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.noise-layer canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;   /* retina: crisp grain, not smoothed */
+}
+html.has-noise .approach::before,
+html.has-noise .svc-card--dark .svc-card__texture,
+html.has-noise .svc-card--orange .svc-card__texture,
+html.has-noise .cta__texture,
+html.has-noise .work__texture {
+  display: none;
+}
