@@ -2263,31 +2263,36 @@ img, svg { display: block; max-width: 100%; }
 
   .process__fan-wrap { overflow: visible; }
 
+  /* The Figma fan is wider than the page (the 5th card ends at 110.7% of the
+     content, so it ran off the screen). The whole fan, cards included, is
+     drawn at 90.3% (= 100 / 110.7): the 5th card now ends on the right
+     margin and every card is fully visible. Sizes are in cqw (fan width),
+     so cards keep their proportions at any page width. */
   .process__fan {
     width: 100%;
     height: auto;
-    aspect-ratio: 1340 / 421;
+    aspect-ratio: 1340 / 380.23;   /* 421px x 0.903 */
     container-type: inline-size;
   }
 
-  /* slot geometry from Figma, as % of the fan (1340 x 421 @1440) */
-  .process__slot--1 { left: 0.0000%;  top: 3.5059%; width: 23.9245%; height: 94.4118%; }
-  .process__slot--2 { left: 22.3881%; top: 3.5629%; width: 24.5616%; height: 96.0372%; }
-  .process__slot--3 { left: 43.8806%; top: 0.0000%; width: 25.9838%; height: 99.6067%; }
-  .process__slot--4 { left: 68.1343%; top: 2.3753%; width: 24.7040%; height: 91.2992%; }
-  .process__slot--5 { left: 85.9701%; top: 1.6581%; width: 24.7530%; height: 96.5226%; }
+  /* slot geometry from Figma x 0.903, as % of the fan */
+  .process__slot--1 { left: 0.0000%;  top: 3.5059%; width: 21.6075%; height: 94.4118%; }
+  .process__slot--2 { left: 20.2199%; top: 3.5629%; width: 22.1829%; height: 96.0372%; }
+  .process__slot--3 { left: 39.6309%; top: 0.0000%; width: 23.4674%; height: 99.6067%; }
+  .process__slot--4 { left: 61.5358%; top: 2.3753%; width: 22.3115%; height: 91.2992%; }
+  .process__slot--5 { left: 77.6442%; top: 1.6581%; width: 22.3558%; height: 96.5226%; }
 
   .process__card {
-    width: 23.8806cqw;   /* 320px of the 1340px fan */
-    gap: 1.5rem;
-    padding: 1.25rem;
-    border-radius: 1.25rem;
+    width: 21.5679cqw;       /* 320px x 0.903 of the 1340px fan */
+    gap: 1.6176cqw;          /* 24px */
+    padding: 1.348cqw;       /* 20px */
+    border-radius: 1.348cqw; /* 20px */
   }
 
-  .process__card-num   { font-size: 3.125rem; }  /* 50px */
-  .process__card-visual { height: 8.8125rem; }   /* 141px */
-  .process__card-title { font-size: 2.5rem; }    /* 40px */
-  .process__card-text  { font-size: 1.125rem; }  /* 18px */
+  .process__card-num    { font-size: 3.37cqw; }     /* 50px */
+  .process__card-visual { height: 9.5033cqw; }      /* 141px */
+  .process__card-title  { font-size: 2.696cqw; }    /* 40px */
+  .process__card-text   { font-size: max(0.75rem, 1.2132cqw); }   /* 18px, never below 12px */
 }
 
 /* ==========================================================================

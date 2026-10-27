@@ -442,7 +442,7 @@
   <div class="process__grad process__grad--top" aria-hidden="true"></div>
   <div class="process__grad process__grad--bottom" aria-hidden="true"></div>
 
-  <div class="process__body" data-fit-rem="51.85" data-fit-fixed-rem="26.3125">
+  <div class="process__body" data-fit-rem="49.3" data-fit-fixed-rem="23.76">
     <div class="process__head">
       <p class="process__label"><span class="process__accent">( </span>Process<span class="process__accent"> )</span></p>
       <div class="process__title-row">
@@ -907,9 +907,11 @@
   gsap.registerPlugin(ScrollTrigger);
 
   var EASE = window.BRAND_EASE || 'power3.out';
-  var INTRO_UNIT = 0.8;
-  var CARD_UNIT = (6 - INTRO_UNIT) / N;   /* keeps ~6 * 100vh of total scroll for N=5 */
-  var TOTAL = INTRO_UNIT + N * CARD_UNIT;
+  /* "from idea" no longer waits inside the pin (that was 0.8 screens of an
+     empty block): it slides in while the block scrolls into view, see below.
+     The pinned timeline is only the cards.                                  */
+  var CARD_UNIT = 5.2 / N;                /* ~5.2 * 100vh of pinned scroll for N=5 */
+  var TOTAL = N * CARD_UNIT;
 
   gsap.set([intro, outro], { xPercent: 100, opacity: 0, willChange: 'transform, opacity' });
 
@@ -924,6 +926,19 @@
     });
   });
 
+  /* the head-line arrives as the block enters the window and is in place
+     when the pin starts (created before the pin so it is measured first) */
+  gsap.to(intro, {
+    xPercent: 0, opacity: 1, ease: EASE,
+    scrollTrigger: {
+      trigger: section,
+      start: 'top 85%',
+      end: 'top top',
+      scrub: 1,
+      invalidateOnRefresh: true
+    }
+  });
+
   var tl = gsap.timeline({
     scrollTrigger: {
       trigger: section,
@@ -935,11 +950,9 @@
     }
   });
 
-  tl.to(intro, { xPercent: 0, opacity: 1, ease: EASE, duration: INTRO_UNIT }, 0);
-
   slots.forEach(function (slot, i) {
     var finalRotate = parseFloat(slot.dataset.rotate);
-    var pos = INTRO_UNIT + i * CARD_UNIT;
+    var pos = i * CARD_UNIT;
     tl.to(slot, { x: 0, rotate: finalRotate, opacity: 1, ease: EASE, duration: CARD_UNIT }, pos);
     if (i === N - 1) {
       tl.to(outro, { xPercent: 0, opacity: 1, ease: EASE, duration: CARD_UNIT }, pos);
