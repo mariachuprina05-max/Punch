@@ -56,6 +56,7 @@
   --grid-gap: 1.25rem;                     /* 20px */
   --page-w: 90rem;                         /* 1440px */
   --grid-pad: max(var(--grid-margin), calc(50% - (var(--page-w) / 2 - var(--grid-margin))));
+  --page-offset: max(0px, calc(50% - var(--page-w) / 2));   /* free space on each side beyond the page column */
 
   /* Single brand motion curve — same 4 control points as the GSAP
      CustomEase("brandEase") registered in index.html, so CSS transitions
@@ -341,8 +342,15 @@ img, svg { display: block; max-width: 100%; }
    ========================================================================== */
 @media (min-width: 1024px) {
   .hero {
-    /* Desktop/Heading/Hero — 230px @1440 */
-    --fs-display: 14.375rem;
+    /* Desktop/Heading/Hero — 230px @1440.
+       Height guard: the hero is 56.25rem tall in the design (900px @1440).
+       When the window is lower than that (a 16:9 monitor, a laptop with
+       toolbars), the head-line gives back exactly the missing height so the
+       whole hero still fits one screen. 2.593 = how many "display sizes"
+       of height the layout has (3 rows x 0.84 + 2 gaps x 0.073 - one
+       pulled-up gap). Never below 7rem. No effect when the window is as
+       tall as the design or taller.                                        */
+    --fs-display: max(7rem, calc(14.375rem - max(0px, 56.25rem - 100svh) / 2.593));
     /* gap between head-line rows: ~17px @230px */
     --row-gap: calc(var(--fs-display) * 0.073);
 
@@ -712,75 +720,95 @@ img, svg { display: block; max-width: 100%; }
 
 /* ==========================================================================
    ABOUT — DESKTOP  ≥ 1024 px
+   Built on the 8-column grid (columns start @1440: 50 · 220 · 390 · 560 ·
+   730 · 900 · 1070 · 1240, 150px wide, 20px gutters). The headline, the
+   paragraph row and the stats row are sub-grids of one parent grid, so
+   everything lines up with the guides on columns 3 and 6.
    ========================================================================== */
 @media (min-width: 1024px) {
   .about {
-    padding-inline: 3.472%;       /* 50px @1440 */
-    padding-block: 6.944% 6.944%; /* 100px @1440 */
+    /* desktop type scale (Figma 1440) */
+    --about-fs-display: 9.375rem;   /* 150px */
+    --about-fs-xl: 6.25rem;         /* 100px */
+    --about-fs-body: 1.125rem;      /* 18px  */
+    --about-fs-label: 1.125rem;     /* 18px  */
+
+    padding-inline: var(--grid-pad);
+    padding-block: 6.25rem;         /* 100px */
   }
 
-  .about__body { gap: 6.944vw; } /* 100px @1440 */
+  .about__body {
+    display: grid;
+    grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
+    column-gap: var(--grid-gap);
+    row-gap: 6.25rem;               /* 100px */
+  }
 
-  /* ---- headline layout ---- */
-  .about__headline { gap: 0; }
+  /* sub-grids: same columns and gutters as the parent, no row gaps */
+  .about__headline,
+  .about__row1,
+  .about__content {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+    column-gap: var(--grid-gap);    /* mobile rules set gap: 0 / 0.75em; the sub-grid must keep the real gutter */
+    row-gap: 0;
+  }
 
+  /* ---- headline ---- */
   .about__row1 {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    height: 7.5vw;           /* 108px @1440 */
+    align-items: start;
+    height: 6.75rem;                /* 108px */
   }
 
   .about__label {
+    grid-column: 1 / 3;
     font-size: var(--about-fs-label);
-    flex: none;
   }
 
   .about__h1-line1 {
+    grid-column: 3 / 7;             /* starts on the 3rd-column guide */
     font-size: var(--about-fs-display);
     text-align: left;
     padding-inline-start: 0;
-    flex: none;
-    width: 41.5%;            /* 556px / 1340px content */
     display: flex;
     align-items: center;
   }
 
   .about__subtitle {
     display: block;
+    grid-column: 7 / 9;
+    justify-self: end;              /* right edge on the page margin */
+    width: 11.6875rem;              /* 187px */
     font-family: var(--ff-text);
     font-size: var(--about-fs-body);
     line-height: 1.2;
     letter-spacing: -0.01em;
     text-align: justify;
     text-align-last: left;
-    width: 13.96%;           /* 187px / 1340px content */
-    flex: none;
   }
 
   .about__h1-line2 {
+    grid-column: 1 / -1;
     font-size: var(--about-fs-display);
-    height: 7.5vw;           /* 108px @1440 */
+    height: 6.75rem;                /* 108px */
     display: flex;
     align-items: center;
   }
 
-  /* ---- content row: indent + row layout ---- */
-  .about__content {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding-inline-start: 25.37%;  /* 340px / 1340px content */
-  }
+  /* ---- paragraph row: 3 columns from the 3rd-column guide + brand tag ---- */
+  .about__content { align-items: start; }
 
   .about__para {
+    grid-column: 3 / 6;             /* 490px @1440 */
     padding: 0;
-    width: 36.49%;           /* 489px / 1340px content */
     text-align: justify;
   }
 
   .about__brand-tag {
     display: block;
+    grid-column: 8 / 9;
+    justify-self: end;
     font-family: var(--ff-text);
     font-size: var(--about-fs-label);
     line-height: 1.1;
@@ -788,12 +816,13 @@ img, svg { display: block; max-width: 100%; }
     white-space: nowrap;
   }
 
-  /* ---- stats: indent + row layout ---- */
+  /* ---- stats: from the 3rd-column guide to the right margin ---- */
   .about__stats {
+    grid-column: 3 / -1;
     flex-direction: row;
     justify-content: space-between;
     align-items: flex-start;
-    padding-inline-start: 25.37%;  /* 340px / 1340px content */
+    padding-inline-start: 0;
     gap: 0;
   }
 
@@ -990,9 +1019,13 @@ img, svg { display: block; max-width: 100%; }
 
 /* ==========================================================================
    APPROACH — DESKTOP ≥ 1024 px
+   Side margins come from the grid (50px @1440). Headline rows sit on the
+   8 columns: label on 1-2, the white line from the 3rd-column guide, the
+   description on 1-2, the yellow line flush with the right margin.
    ========================================================================== */
 @media (min-width: 1024px) {
   .approach {
+    padding-inline: var(--grid-pad);
     padding-block: 6.25rem;   /* 100px */
     overflow: hidden;
   }
@@ -1004,34 +1037,49 @@ img, svg { display: block; max-width: 100%; }
 
   .approach__body { gap: 3.625rem; } /* 58px */
 
-  /* ---- headline: two side-by-side rows ---- */
+  /* ---- headline: two rows on the grid ---- */
+  .approach__head {
+    display: grid;
+    grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
+    column-gap: var(--grid-gap);
+  }
+
   .approach__head-r1,
   .approach__head-r2 {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+    column-gap: var(--grid-gap);
     min-height: 6.75rem;  /* 108px */
-    padding-inline-end: 6.5rem; /* 104px */
+    padding-inline-end: 0;
   }
 
-  .approach__head-r2 {
-    padding-inline-end: 0;
-    align-items: flex-end;
-  }
+  .approach__head-r1 { align-items: center; }
+  .approach__head-r2 { align-items: end; }
 
   .approach__label {
+    grid-column: 1 / 3;
     font-size: 1.125rem;  /* 18px */
-    flex: none;
-    align-self: flex-start;
+    align-self: start;
   }
 
   .approach__h1 {
     font-size: 9.375rem;  /* 150px */
-    flex: none;
+  }
+
+  .approach__h1--white {
+    grid-column: 3 / -1;  /* starts on the 3rd-column guide */
+    justify-self: start;
+  }
+
+  .approach__h1--yellow {
+    grid-column: 3 / -1;
+    justify-self: end;    /* right edge on the page margin */
   }
 
   .approach__desc {
     display: block;
+    grid-column: 1 / 3;
     font-family: var(--ff-text);
     font-size: 1.125rem;   /* 18px */
     line-height: 1.2;
@@ -1039,11 +1087,10 @@ img, svg { display: block; max-width: 100%; }
     text-align: justify;
     text-align-last: left;
     width: 15.25rem;       /* 244px */
-    flex: none;
-    align-self: flex-end;
+    align-self: end;
   }
 
-  /* ---- cards container: 1036/657 ratio, 77.3% of content ---- */
+  /* ---- cards container: 1036/657 ratio, 77.3% of the content (1340px) ---- */
   .approach__cards {
     width: 77.3%;
     aspect-ratio: 1036 / 657;
@@ -1057,10 +1104,13 @@ img, svg { display: block; max-width: 100%; }
   .approach__cw--4 { left: 32.91%; top: 47.79%; transform: rotate( 2.27deg); }
   .approach__cw--5 { left: 64.57%; top: 45.51%; transform: rotate(-4.12deg); }
 
-  /* Desktop card: 340/1036 ≈ 32.82% wide, aspect-ratio 340:330 */
+  /* Desktop card: 340/1036 ≈ 32.82% of the container, aspect-ratio 340:330.
+     The width sits on the (absolutely positioned) wrapper, so it needs no
+     pixel floor any more: the card follows the container at every width. */
+  .approach__cw { width: 32.82%; }
+
   .approach__card {
-    width: 32.82%;
-    min-width: 21.25rem;       /* 340px floor */
+    width: 100%;
     aspect-ratio: 340 / 330;
     border-radius: 1.25rem;    /* 20px */
     padding: 1.875rem 1.25rem; /* 30px 20px */
@@ -1199,13 +1249,19 @@ img, svg { display: block; max-width: 100%; }
 
 /* ==========================================================================
    PRE-SERVICES — DESKTOP ≥ 1024 px
+   The block is 56.25rem tall (900px @1440) and stays that tall past 1920,
+   like the type; the fists hang on the page column, not on the screen edge.
    ========================================================================== */
 @media (min-width: 1024px) {
   .presvcs {
+    --presvcs-fs: 9.375rem;       /* 150px */
     padding: 0;
-    /* height tracks width: 900 / 1440 = 62.5 % */
-    aspect-ratio: 8 / 5;
+    min-height: 56.25rem;         /* 900px @1440 */
   }
+
+  .presvcs__title,
+  .presvcs__standout,
+  .presvcs__standout-text { font-size: var(--presvcs-fs); }
 
   .presvcs__standout {
     gap: 0.12em;   /* ~18 px at 150 px font */
@@ -1213,14 +1269,14 @@ img, svg { display: block; max-width: 100%; }
 
   /* Flanking the headline on the sides, vertically centered on the section */
   .presvcs__fist--l {
-    left:   -4%;
-    width:  30%;
+    left:   calc(var(--page-offset) - 3.6rem);   /* -57.6px @1440 */
+    width:  27rem;                               /* 432px */
     right:  auto;
   }
 
   .presvcs__fist--r {
-    right:  -4%;
-    width:  28%;
+    right:  calc(var(--page-offset) - 3.6rem);
+    width:  25.2rem;                             /* 403px */
     left:   auto;
   }
 }
