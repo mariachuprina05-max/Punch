@@ -16,6 +16,8 @@
      level      contour level of the field, 0..1          (default 0.5)
      speed      how fast the field flows                  (default 0.14)
      alpha      overall strength, 0..1                    (default 1)
+     edgeFade   px over which the dots dissolve at the block's
+                top and bottom edge, so there is no hard cut    (default 300)
 
    DotField.mount(options) -> { destroy() } or null.
    ========================================================================== */
@@ -62,7 +64,7 @@
   }
 
   function mount(options) {
-    var o = Object.assign({ target: '.about', color: '#FFF714', level: 0.5, speed: 0.14, alpha: 1 }, options || {});
+    var o = Object.assign({ target: '.about', color: '#FFF714', level: 0.5, speed: 0.14, alpha: 1, edgeFade: 300 }, options || {});
     var host = document.querySelector(o.target);
     if (!host) return null;
 
@@ -81,7 +83,7 @@
     host.classList.add('has-dotfield');
 
     var rgb = resolveColor(o.color);
-    var W = 0, H = 0, dpr = 1, cell = 30, cols = 0, rows = 0, F = null;
+    var W = 0, H = 0, dpr = 1, cell = 30, cols = 0, rows = 0, F = null, R = null;
     var visible = false, raf = 0, alive = true;
     var pointer = { x: 0, y: 0, tx: 0, ty: 0, p: 0, tp: 0 };
 
@@ -94,6 +96,8 @@
       cell = Math.max(9, Math.round(Math.sqrt(W * H / 3800)));
       cols = Math.ceil(W / cell); rows = Math.ceil(H / cell);
       F = new Float32Array((cols + 2) * (rows + 2));
+      R = new Float32Array(cols * rows);                      /* a fixed random value per cell, for the dissolve */
+      for (var q = 0; q < R.length; q++) R[q] = hash(q % cols, (q / cols) | 0, 91);
     }
 
     function draw(ms) {
@@ -127,8 +131,16 @@
 
       var level = o.level;
       var dots = [], dias = [], sols = [];
+      var zone = Math.max(1, Math.min(o.edgeFade, H * 0.4));
       for (j = 0; j < rows; j++) {
+        /* near the top / bottom edge cells thin out at random and the rest shrink:
+           the pattern dissolves into the dark instead of being cut off */
+        var rowY = (j + 0.5) * cell;
+        var edge = Math.min(smoothstep(0, zone, rowY), smoothstep(0, zone, H - rowY));
+        if (edge <= 0.02) continue;
+        var shrink = 0.4 + 0.6 * edge;
         for (i = 0; i < cols; i++) {
+          if (edge < 1 && edge * 1.25 < R[j * cols + i]) continue;
           k = (j + 1) * stride + (i + 1);
           var f = F[k];
           var gx = (F[k + 1] - F[k - 1]) * 0.5, gy = (F[k + stride] - F[k - stride]) * 0.5;
@@ -138,9 +150,9 @@
              the rings keep the same thickness wherever the field is flat */
           var d = Math.abs(f - level) / Math.max(Math.sqrt(gx * gx + gy * gy), 0.004);
           var a = 1 - smoothstep(0.6, 3.6, d);                         /* 1 on the contour, 0 far from it */
-          var half = cell * (0.12 + 0.2 * a * a);                      /* half the side of the mark: ~1.6px dots up to ~8px squares */
+          var half = cell * (0.12 + 0.2 * a * a) * shrink;             /* half the side of the mark */
           if (a < 0.34) {
-            dots.push(cx, cy, cell * (0.12 + 0.03 * a));
+            dots.push(cx, cy, cell * (0.12 + 0.03 * a) * shrink);
           } else {
             var rot = Math.PI / 4 * (1 - smoothstep(0.55, 0.82, a));    /* diamond -> square */
             (a < 0.62 ? dias : sols).push(cx, cy, half, rot);

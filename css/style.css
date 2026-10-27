@@ -2788,3 +2788,12 @@ html.has-noise .work__texture {
 
 /* the yellow service card is the one yellow block without the RGB screen texture */
 .svc-card--yellow .svc-card__texture { display: none; }
+
+/* --------------------------------------------------------------------------
+   Seams around the code-drawn halftone: the dots dissolve on their own at the
+   top and bottom edge of the block, so the colour gradients that used to
+   blend these edges are dropped (they also hid the grain and made a band).
+   -------------------------------------------------------------------------- */
+.about.has-dotfield .about__gradient,
+.about.has-dotfield + .approach .approach__grad--top,
+.process.has-dotfield .process__grad { display: none; }
