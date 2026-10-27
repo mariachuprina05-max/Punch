@@ -1216,13 +1216,12 @@ window.PunchReveal = {
   function setupReveals() {
     /* every display heading uses the same entrance as the hero headline
        (PunchReveal, defined just above), played once as it scrolls into
-       view. Process titles are left out: the pinned Process section
-       animates them itself. */
+       view. Left out: the Process titles (the pinned section animates
+       them itself) and the service-card titles (no entrance by design). */
     var HEADINGS = [
       '.about__h1-line1', '.about__h1-line2',
       '.approach__h1',
       '.presvcs__title',
-      '.svc-card__title',
       '.work__h1',
       '.cta__h1',
       '.cta2__title'

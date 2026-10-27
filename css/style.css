@@ -39,6 +39,10 @@
 
   /* Shared metrics of the display style (Heading/Hero) */
   --display-lh: 0.84;   /* lineHeight 0.84 */
+  /* Stacked display lines (a headline broken into rows): line-height 0.84
+     plus this gap = one common pitch of 0.913em, the one the Figma hero
+     uses (0.84 + 0.073). em, so it follows the heading's own font-size. */
+  --display-gap: 0.073em;
   --display-ls: 0.01em; /* letterSpacing 1% */
 
   /* Hairlines */
@@ -636,6 +640,7 @@ img, svg { display: block; max-width: 100%; }
   letter-spacing: var(--about-ls-display);
   text-transform: uppercase;
   color: var(--c-white);
+  margin-top: var(--display-gap);   /* common pitch between stacked display lines */
 }
 
 /* subtitle — hidden on mobile, shown desktop */
@@ -757,8 +762,7 @@ img, svg { display: block; max-width: 100%; }
 
   /* ---- headline ---- */
   .about__row1 {
-    align-items: start;
-    height: 6.75rem;                /* 108px */
+    align-items: start;             /* the row is as tall as the head-line (no fixed height: lines used to overlap) */
   }
 
   .about__label {
@@ -791,7 +795,6 @@ img, svg { display: block; max-width: 100%; }
   .about__h1-line2 {
     grid-column: 1 / -1;
     font-size: var(--about-fs-display);
-    height: 6.75rem;                /* 108px */
     display: flex;
     align-items: center;
   }
@@ -923,7 +926,7 @@ img, svg { display: block; max-width: 100%; }
 }
 
 .approach__h1--white  { color: var(--c-white); }
-.approach__h1--yellow { color: var(--c-brand); }
+.approach__h1--yellow { color: var(--c-brand); padding-top: var(--display-gap); }   /* common pitch between stacked lines */
 
 .approach__desc { display: none; } /* desktop only */
 
@@ -1416,26 +1419,33 @@ img, svg { display: block; max-width: 100%; }
   .svc-card {
     --peek: 50px;           /* desktop overlap, from the Figma spec */
     border-radius: 3.125rem 3.125rem 0 0;   /* 50px */
-    padding: 5rem 3.472% 7.5rem;            /* 80px / 120px, sides 50px */
+    padding: 5rem var(--grid-pad) 7.5rem;   /* 80px / 120px, sides = grid margin (50px @1440) */
     min-height: 46rem;
   }
 
+  /* text column on columns 1-4 (660px @1440: the 610px column of the design
+     plus room for the longest title), photo on columns 6-8 (490px) */
   .svc-card__row {
-    flex-direction: row;
+    display: grid;
+    grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
+    column-gap: var(--grid-gap);
     align-items: center;
-    justify-content: space-between;
-    gap: 3.75rem;
   }
 
   .svc-card__col {
-    width: 42.36%;   /* 610 / 1440 */
+    grid-column: 1 / 5;
   }
 
   /* desktop order: number → tags → description → title */
   .svc-card__num   { order: 1; margin-top: 0; }
   .svc-card__tags  { order: 2; margin-top: 2.5rem;   } /* 40px */
   .svc-card__desc  { order: 3; margin-top: 8.6875rem; width: 79.7%; } /* 139px gap, 440/552 */
-  .svc-card__title { order: 4; margin-top: 1rem; }     /* 16px */
+  .svc-card__title {
+    order: 4;
+    margin-top: 1rem;       /* 16px */
+    white-space: nowrap;    /* one line, as in Figma */
+    letter-spacing: 0.02em; /* 3px @150px */
+  }
 
   .svc-card__num  { font-size: 3.125rem; }  /* 50px */
   .svc-card__tags { gap: 0.75rem; }
@@ -1443,9 +1453,9 @@ img, svg { display: block; max-width: 100%; }
 
   .svc-card__divider {
     order: 5;
-    flex: none;
+    grid-column: 6 / 9;   /* 490px @1440 (489 in Figma) */
     align-self: stretch;
-    width: 33.96%;    /* 489 / 1440 */
+    width: auto;
     aspect-ratio: auto;
     border-radius: 1.875rem;   /* 30px */
   }
@@ -1489,6 +1499,8 @@ img, svg { display: block; max-width: 100%; }
   display: flex;
   flex-direction: column;
 }
+
+.cta__h1 + .cta__h1 { margin-top: var(--display-gap); }   /* common pitch between stacked lines */
 
 .cta__h1 {
   font-family: var(--ff-display);
@@ -1585,7 +1597,7 @@ img, svg { display: block; max-width: 100%; }
   .cta__h1--indent {
     order: 3;
     flex: 0 0 100%;
-    margin-top: 1rem;
+    margin-top: var(--display-gap);
     padding-inline-start: 28.6%;   /* 383 / 1341 */
   }
 
@@ -1690,7 +1702,7 @@ img, svg { display: block; max-width: 100%; }
   padding-inline-start: 0.5rem;
 }   /* short "(work)" tag, mobile-only */
 
-.work__head-r2 .work__h1 { min-width: 0; }
+.work__head-r2 .work__h1 { min-width: 0; padding-top: var(--display-gap); }   /* common pitch between stacked lines */
 
 .work__accent { color: var(--c-brand); }
 
@@ -2258,6 +2270,8 @@ img, svg { display: block; max-width: 100%; }
   text-transform: uppercase;
   margin: 0;
 }
+
+.cta2__title-line + .cta2__title-line { margin-top: var(--display-gap); }   /* common pitch between stacked lines */
 
 .cta2__accent { color: var(--c-brand-second); }
 
