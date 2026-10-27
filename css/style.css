@@ -2797,3 +2797,7 @@ html.has-noise .work__texture {
 .about.has-dotfield .about__gradient,
 .about.has-dotfield + .approach .approach__grad--top,
 .process.has-dotfield .process__grad { display: none; }
+
+/* the hero's grain sits above its bottom colour fade and the halftone hands
+   (both would otherwise hide it), but still under the copy */
+.hero > .noise-layer { z-index: 2; }

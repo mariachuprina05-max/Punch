@@ -705,13 +705,13 @@
 </script>
 <script src="js/noise.js"></script>
 <script>
-  /* film grain on every non-yellow background; yellow blocks (hero,
-     "Three ways", yellow service card, final form) keep the RGB screen
-     texture. Add or remove selectors here to change where it sits. */
+  /* film grain on every block of the page. Add or remove selectors here
+     to change where it sits. */
   Noise.mount({
     targets: [
-      '.about', '.approach', '.svc-card--dark', '.svc-card--orange',
-      '.cta', '.work__sticky', '.process', '.footer'
+      '.hero', '.about', '.approach', '.presvcs',
+      '.svc-card--dark', '.svc-card--orange', '.svc-card--yellow',
+      '.cta', '.work__sticky', '.process', '.cta2', '.footer'
     ],
     patternSize: 200,
     patternScaleX: 2,
