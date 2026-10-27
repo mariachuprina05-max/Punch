@@ -15,7 +15,7 @@
   var els = document.querySelectorAll('[data-fit-rem]');
   if (!els.length) return;
 
-  var desktop = window.matchMedia('(min-width: 1024px)');
+  var desktop = window.PunchLayout.mq;
   var timer = 0;
 
   function apply() {

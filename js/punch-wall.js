@@ -35,7 +35,7 @@
 
   /* ---- tuning ---------------------------------------------------------- */
   var BG = '#121212';
-  var HERO_MIN_W = 1024;       /* hero hands only on desktop, like the design */
+  var HERO_MIN_W = 768;        /* hero hands only on desktop, like the design */
   var REST_PRESS = 0.32;       /* how hard the figure leans on the wall idle  */
   var WINDUP = 0.16;           /* s: the wall relaxes before each knock lands */
   var DISP = 56;               /* px of dot slide per unit of slope           */
@@ -216,13 +216,14 @@
       document.documentElement.addEventListener('mouseleave', function () { mouse.ts = 0; });
     }
 
-    var ctx, W, H, fit, hands, active;
+    var ctx, W, H, fit, hands, active, U = 1;   /* U: design px of the 1440 frame, so the effects scale with the hero */
     var settling = false;
     var idleFrom = now();   /* when the idle pushing fades in */
 
     function layout() {
       W = heroEl.clientWidth; H = heroEl.clientHeight;
       active = window.innerWidth >= HERO_MIN_W;
+      U = Math.min(W, 1920) / 1440;
       canvas.style.display = active ? '' : 'none';
       if (!active) return;
       ctx = setupCanvas(canvas, W, H);
@@ -260,7 +261,7 @@
       mouse.cx += (mouse.tcx - mouse.cx) * 0.12;
       mouse.cy += (mouse.tcy - mouse.cy) * 0.12;
       mouse.s += (mouse.ts - mouse.s) * 0.06;
-      var R2 = CURSOR_R * CURSOR_R;
+      var RC = CURSOR_R * U, R2 = RC * RC, PAR = PARALLAX * U, PUSH = CURSOR_PUSH * U;
 
       for (var i = 0; i < N; i++) {
         var d = DOTS[i];
@@ -274,16 +275,16 @@
 
         /* parallax: the halo barely moves, the hands follow the mouse */
         var depth = 0.25 + 0.75 * handness[i];
-        x += mouse.x * PARALLAX * depth;
-        y += mouse.y * PARALLAX * 0.6 * depth;
+        x += mouse.x * PAR * depth;
+        y += mouse.y * PAR * 0.6 * depth;
 
         /* the cursor parts the dots around it, like a hand through sand */
         if (mouse.s > 0.01) {
           var cx = x - mouse.cx, cy = y - mouse.cy, c2 = cx * cx + cy * cy;
           if (c2 < R2 && c2 > 0.01) {
-            var cd = Math.sqrt(c2), f = 1 - cd / CURSOR_R;
+            var cd = Math.sqrt(c2), f = 1 - cd / RC;
             f = f * f * mouse.s;
-            x += cx / cd * f * CURSOR_PUSH; y += cy / cd * f * CURSOR_PUSH;
+            x += cx / cd * f * PUSH; y += cy / cd * f * PUSH;
             r *= 1 + 0.2 * f;
           }
         }

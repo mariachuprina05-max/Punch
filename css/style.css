@@ -60,6 +60,10 @@
   --grid-gap: 1.25rem;                     /* 20px */
   --page-w: 90rem;                         /* 1440px */
   --grid-pad: max(var(--grid-margin), calc(50% - (var(--page-w) / 2 - var(--grid-margin))));
+  /* one design pixel of the 1440 frame, by width: display type is sized as
+     calc(N * var(--dpx)). Above 1440 it equals rem / 16 (so 1440 and 1920 are
+     unchanged); below, headings shrink with the page while text keeps its floor. */
+  --dpx: min(calc(100vw / 1440), 1.3333px);
   --page-offset: max(0px, calc(50% - var(--page-w) / 2));   /* free space on each side beyond the page column */
 
   /* Single brand motion curve — same 4 control points as the GSAP
@@ -81,14 +85,15 @@ html { -webkit-text-size-adjust: 100%; }
    Fluid root: every rem on the desktop layout follows this value.
      1440 -> 1920 : 100vw / 90, exactly proportional to the Figma frame
                     (16px -> 21.33px)
-     1024 -> 1440 : slides 14.0 -> 16px, slower than the width, so text
-                    never drops much below the Figma sizes
+     768 -> 1440  : slides 13.5 -> 16px, slower than the width, so text
+                    never drops much below the Figma sizes (--dpx scales the
+                    big display type with the width instead, see :root)
      beyond 1920  : stops at 21.33px; the page stays centred (--grid-pad)
    Media queries below are in px on purpose: they do not depend on the root.
    -------------------------------------------------------------------------- */
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   html {
-    font-size: min(21.3333px, max(calc(100vw / 90), calc(12.8px + (100vw - 768px) * 0.0047619)));
+    font-size: min(21.3333px, max(calc(100vw / 90), calc(13.5px + (100vw - 768px) * 0.0037202)));
   }
 }
 
@@ -344,7 +349,7 @@ img, svg { display: block; max-width: 100%; }
 /* ==========================================================================
    DESKTOP  (Figma desktop frame: 1440 px wide)
    ========================================================================== */
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .hero {
     /* Desktop/Heading/Hero — 230px @1440.
        Height guard: the hero is 56.25rem tall in the design (900px @1440).
@@ -354,7 +359,7 @@ img, svg { display: block; max-width: 100%; }
        of height the layout has (3 rows x 0.84 + 2 gaps x 0.073 - one
        pulled-up gap). Never below 7rem. No effect when the window is as
        tall as the design or taller.                                        */
-    --fs-display: max(7rem, calc(14.375rem - max(0px, 56.25rem - 100svh) / 2.593));
+    --fs-display: max(7rem, calc(230 * var(--dpx) - max(0px, 56.25rem - 100svh) / 2.593));
     /* gap between head-line rows: ~17px @230px */
     --row-gap: calc(var(--fs-display) * 0.073);
 
@@ -559,7 +564,7 @@ img, svg { display: block; max-width: 100%; }
   z-index: 0;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .about::before {
     inset: 0;
     width: 100%;
@@ -724,17 +729,17 @@ img, svg { display: block; max-width: 100%; }
 .about__bracket--left { transform: scaleX(-1); }
 
 /* ==========================================================================
-   ABOUT — DESKTOP  ≥ 1024 px
+   ABOUT — DESKTOP  ≥ 768 px
    Built on the 8-column grid (columns start @1440: 50 · 220 · 390 · 560 ·
    730 · 900 · 1070 · 1240, 150px wide, 20px gutters). The headline, the
    paragraph row and the stats row are sub-grids of one parent grid, so
    everything lines up with the guides on columns 3 and 6.
    ========================================================================== */
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .about {
     /* desktop type scale (Figma 1440) */
-    --about-fs-display: 9.375rem;   /* 150px */
-    --about-fs-xl: 6.25rem;         /* 100px */
+    --about-fs-display: calc(150 * var(--dpx));
+    --about-fs-xl: calc(100 * var(--dpx));
     --about-fs-body: 1.125rem;      /* 18px  */
     --about-fs-label: 1.125rem;     /* 18px  */
 
@@ -1021,12 +1026,12 @@ img, svg { display: block; max-width: 100%; }
 }
 
 /* ==========================================================================
-   APPROACH — DESKTOP ≥ 1024 px
+   APPROACH — DESKTOP ≥ 768 px
    Side margins come from the grid (50px @1440). Headline rows sit on the
    8 columns: label on 1-2, the white line from the 3rd-column guide, the
    description on 1-2, the yellow line flush with the right margin.
    ========================================================================== */
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .approach {
     padding-inline: var(--grid-pad);
     padding-block: 6.25rem;   /* 100px */
@@ -1067,7 +1072,7 @@ img, svg { display: block; max-width: 100%; }
   }
 
   .approach__h1 {
-    font-size: 9.375rem;  /* 150px */
+    font-size: calc(150 * var(--dpx));
   }
 
   .approach__h1--white {
@@ -1094,10 +1099,13 @@ img, svg { display: block; max-width: 100%; }
   }
 
   /* ---- cards container: 1036/657 ratio, 77.3% of the content (1340px) ---- */
+  /* 77.3% of the content at 1440 (1036px); on a tablet the cards grow to the full
+     width so their text keeps a readable size. */
   .approach__cards {
-    width: 77.3%;
+    width: max(77.3%, calc(100% - (100vw - 768px) * 0.453));
     aspect-ratio: 1036 / 657;
     margin: 0 auto;
+    container-type: inline-size;   /* card internals are sized in cqw, like the Process fan */
   }
 
   /* Desktop positions — % of 1036 × 657 container */
@@ -1115,14 +1123,14 @@ img, svg { display: block; max-width: 100%; }
   .approach__card {
     width: 100%;
     aspect-ratio: 340 / 330;
-    border-radius: 1.25rem;    /* 20px */
-    padding: 1.875rem 1.25rem; /* 30px 20px */
+    border-radius: 1.931cqw;           /* 20px @1440 */
+    padding: 2.896cqw 1.931cqw;        /* 30px 20px */
   }
 
-  .approach__card-num   { font-size: 3.125rem; }  /* 50px */
-  .approach__card-title { font-size: 2.5rem; }    /* 40px */
-  .approach__card-text  { font-size: 1.125rem; }  /* 18px */
-  .approach__card-body  { gap: 0.75rem; }
+  .approach__card-num   { font-size: 4.826cqw; }  /* 50px */
+  .approach__card-title { font-size: 3.861cqw; }  /* 40px */
+  .approach__card-text  { font-size: max(12px, 1.737cqw); }  /* 18px, never below 12px */
+  .approach__card-body  { gap: 1.158cqw; }
 }
 
 /* --------------------------------------------------------------------------
@@ -1251,13 +1259,13 @@ img, svg { display: block; max-width: 100%; }
 }
 
 /* ==========================================================================
-   PRE-SERVICES — DESKTOP ≥ 1024 px
+   PRE-SERVICES — DESKTOP ≥ 768 px
    The block is 56.25rem tall (900px @1440) and stays that tall past 1920,
    like the type; the fists hang on the page column, not on the screen edge.
    ========================================================================== */
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .presvcs {
-    --presvcs-fs: 9.375rem;       /* 150px */
+    --presvcs-fs: calc(150 * var(--dpx));
     padding: 0;
     min-height: 56.25rem;         /* 900px @1440 */
   }
@@ -1413,9 +1421,9 @@ img, svg { display: block; max-width: 100%; }
 }
 
 /* ==========================================================================
-   SERVICES — DESKTOP ≥ 1024 px
+   SERVICES — DESKTOP ≥ 768 px
    ========================================================================== */
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .svc-card {
     --peek: 3.125rem;       /* desktop overlap (50px @1440), from the Figma spec */
     border-radius: 3.125rem 3.125rem 0 0;   /* 50px */
@@ -1448,12 +1456,12 @@ img, svg { display: block; max-width: 100%; }
   .svc-card__title {
     order: 4;
     margin-top: 1rem;       /* 16px */
-    font-size: 9.375rem;    /* 150px */
+    font-size: calc(150 * var(--dpx));
     white-space: nowrap;    /* one line, as in Figma */
     letter-spacing: 0.02em; /* 3px @150px */
   }
 
-  .svc-card__num  { font-size: 3.125rem; }  /* 50px */
+  .svc-card__num  { font-size: calc(50 * var(--dpx)); }  /* 50px */
   .svc-card__tags { gap: 0.75rem; }
   .svc-card__tag-row { gap: 0.75rem; }
   .svc-card__tag { font-size: 1.125rem; }   /* 18px */
@@ -1576,13 +1584,13 @@ img, svg { display: block; max-width: 100%; }
 .cta__btn-bracket--l { transform: scaleX(-1); }
 
 /* ==========================================================================
-   CTA — DESKTOP ≥ 1024 px
+   CTA — DESKTOP ≥ 768 px
    Figma CTA frame (1440 x 900): head-line 1 from the margin, the paragraph on
    columns 6-7 (320px), head-line 2 flush with the right margin, the button
    on column 6. The pointing hand bleeds off the left edge of the page
    column. The block is 56.25rem tall and stays that tall past 1920.
    ========================================================================== */
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .cta {
     padding: 9.375rem 0 6.25rem;   /* 150px: the head-line starts 150px down, as in Figma */
     min-height: 56.25rem;          /* 900px @1440 */
@@ -1893,7 +1901,7 @@ img, svg { display: block; max-width: 100%; }
 }
 
 /* ==========================================================================
-   SELECTED WORK — DESKTOP ≥ 1024 px
+   SELECTED WORK — DESKTOP ≥ 768 px
    Pinned block (N screens tall, the inner box sticks for one screen).
    The head-line and the case grid sit on the 8 columns: label on 1-2,
    line 1 from the 3rd-column guide, line 2 from the margin; case list on
@@ -1901,7 +1909,7 @@ img, svg { display: block; max-width: 100%; }
    `--fit` (set by js/fit.js, 1 on tall windows) shrinks the whole body so
    it never gets cut off by the one-screen sticky box.
    ========================================================================== */
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .work__wrap {
     height: calc(var(--n, 3) * 100vh);
   }
@@ -1959,7 +1967,7 @@ img, svg { display: block; max-width: 100%; }
 
   .work__label--mobile { display: none; }
 
-  .work__h1 { font-size: 9.375rem; white-space: nowrap; }   /* 150px */
+  .work__h1 { font-size: calc(150 * var(--dpx)); white-space: nowrap; }   /* 150px */
 
   /* ---- case grid ---- */
   .work__grid {
@@ -2008,7 +2016,7 @@ img, svg { display: block; max-width: 100%; }
     display: contents;   /* unwrap: Context/What we did flow as siblings of Result */
   }
 
-  .work__field-title { font-size: 2.5rem; }   /* 40px */
+  .work__field-title { font-size: calc(40 * var(--dpx)); }   /* 40px */
   .work__field-text  { font-size: 1.125rem; } /* 18px */
 
   .work__result {
@@ -2213,14 +2221,14 @@ img, svg { display: block; max-width: 100%; }
 }
 
 /* ==========================================================================
-   PROCESS — DESKTOP ≥ 1024 px
+   PROCESS — DESKTOP ≥ 768 px
    Pinned scroll-jacked block. "from idea" starts on the 3rd-column guide and
    "to launch" on the 6th (Figma: x=389 / x=901). The card fan is as wide as
    the content (1340px @1440) and every slot is a percentage of it, so it
    scales with the page; the card width follows the fan too (container
    query units). `--fit` (js/fit.js) keeps the whole body inside one screen.
    ========================================================================== */
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .process {
     height: 100svh;   /* scroll-jacked pin — see the controller script */
     border-radius: 0;   /* flush with Selected Work above */
@@ -2259,7 +2267,7 @@ img, svg { display: block; max-width: 100%; }
   .process__intro  { grid-column: 1 / 4; }   /* "from idea": 3rd-column guide */
   .process__outro  { grid-column: 4 / 7; }   /* "to launch": 6th-column guide */
 
-  .process__title { font-size: 9.375rem; white-space: nowrap; }   /* 150px */
+  .process__title { font-size: calc(150 * var(--dpx)); white-space: nowrap; }   /* 150px */
 
   .process__fan-wrap { overflow: visible; }
 
@@ -2292,7 +2300,7 @@ img, svg { display: block; max-width: 100%; }
   .process__card-num    { font-size: 3.37cqw; }     /* 50px */
   .process__card-visual { height: 9.5033cqw; }      /* 141px */
   .process__card-title  { font-size: 2.696cqw; }    /* 40px */
-  .process__card-text   { font-size: max(0.75rem, 1.2132cqw); }   /* 18px, never below 12px */
+  .process__card-text   { font-size: max(12px, 1.2132cqw); }   /* 18px, never below 12px */
 }
 
 /* ==========================================================================
@@ -2470,9 +2478,9 @@ img, svg { display: block; max-width: 100%; }
 }
 
 /* ==========================================================================
-   CTA FORM — DESKTOP ≥ 1024 px
+   CTA FORM — DESKTOP ≥ 768 px
    ========================================================================== */
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .cta2 {
     padding: 6.25rem var(--grid-pad);   /* 100px / the grid margin (50px @1440) */
     min-height: 48.625rem;              /* 778px, the Figma block */
@@ -2481,7 +2489,7 @@ img, svg { display: block; max-width: 100%; }
   .cta2__body { gap: 3.125rem; }   /* 50px */
   .cta2__header { gap: 0.875rem; }   /* 14px */
 
-  .cta2__title { font-size: 9.375rem; }   /* 150px */
+  .cta2__title { font-size: calc(150 * var(--dpx)); }   /* 150px */
   .cta2__title-line { white-space: nowrap; }
 
   .cta2__subtitle { font-size: 1.125rem; max-width: none; }   /* 18px */
@@ -2636,12 +2644,12 @@ img, svg { display: block; max-width: 100%; }
 .footer__legal { display: none; }   /* dropped entirely on the mobile frame */
 
 /* ==========================================================================
-   FOOTER — DESKTOP ≥ 1024 px
+   FOOTER — DESKTOP ≥ 768 px
    Left block on columns 1-5 (830px, Figma 822), right block on columns 6-8
    (490px from the 6th-column guide); "( SOCIALS )" starts on the 7th
    column (x=1070, Figma 1067).
    ========================================================================== */
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .footer__body {
     display: grid;
     grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
@@ -2822,10 +2830,10 @@ html.no-scroll body { overflow: hidden; height: 100%; }
 }
 
 /* ==========================================================================
-   PRELOADER — DESKTOP ≥ 1024 px
+   PRELOADER — DESKTOP ≥ 768 px
    Percentages measured off the Figma frame (1440×810): 100% = full section
    ========================================================================== */
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .preloader__text {
     left: 13.89%;      /* 200 / 1440 */
     top: 41.98%;       /* 340 / 810  */
@@ -2914,7 +2922,7 @@ html.no-scroll body { overflow: hidden; height: 100%; }
 .hero-intro-pending .hero__stage { visibility: hidden; }
 
 /* the canvas draws the hands now, so drop the PNG and keep only the grain */
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   html.dot-hands .hero {
     background-image: repeating-linear-gradient(
       90deg,
@@ -3003,3 +3011,33 @@ html.has-noise .work__texture {
 /* the hero's grain sits above its bottom colour fade and the halftone hands
    (both would otherwise hide it), but still under the copy */
 .hero > .noise-layer { z-index: 2; }
+
+/* ==========================================================================
+   TABLET 768–1099: fixes that scaling alone cannot do. Keep this block LAST so
+   it wins over the per-section desktop rules above.
+   ========================================================================== */
+/* Tablet: the 8 columns are narrow here, so the left lead takes two of them
+   and the menu gets room by dropping the Instagram link. */
+@media (min-width: 768px) and (max-width: 1099.98px) {
+  .hero__lead--left { grid-area: 4 / 1 / 5 / 3; }
+  .hero__nav { grid-column: 3 / 8; gap: 1.8em; }
+  .hero__social { display: none; }
+
+  .about { --about-fs-xl: calc(78 * var(--dpx)); }   /* "($120M+)" no longer meets "20+" */
+
+  /* Work: the list, photo and details each get their own columns */
+  .work__list-viewport { width: 100%; }
+  .work__list-item { font-size: 1rem; }
+  .work__image { width: 100%; justify-self: stretch; }
+  .work__field-text,
+  .work__result-list { font-size: 1rem; }
+
+  /* Footer: the right column takes four columns so the e-mail fits */
+  .footer__col--left  { grid-column: 1 / 5; gap: 5rem; }
+  .footer__col--right { grid-column: 5 / 9; }
+  .footer__link-group:last-child { grid-column: 2 / 5; }
+  .footer__link-list a,
+  .footer__legal-links { white-space: nowrap; }
+  .footer__legal-links { gap: 1.25rem; font-size: 0.875rem; }
+  .footer__copyright { font-size: max(11.5px, 0.75rem); }
+}

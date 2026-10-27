@@ -689,6 +689,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/SplitText.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/CustomEase.min.js"></script>
+<script src="js/layout.js"></script>
 <script src="js/punch-hands-dots.js"></script>
 <script src="js/punch-wall.js"></script>
 <script src="js/pixel-trail.js"></script>
@@ -893,10 +894,10 @@
   var N = slots.length;   // driven by markup, not hardcoded
 
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+  var isDesktop = window.PunchLayout.desktop;
 
   if (reduceMotion || !isDesktop || typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
-    /* Below 1024px this is a normal, compact, non-pinned block (Figma
+    /* Below 768px this is a normal, compact, non-pinned block (Figma
        mobile frame is ~398px — no room for a 6-viewport scroll-jacked
        pin): the cards already sit in their final fanned/rotated position
        in plain CSS, so there's nothing further to do but let the wrapper
@@ -1082,10 +1083,10 @@
     });
   });
 
-  // -- scroll-driven pin, rAF throttled — desktop only. Below 1024px the
+  // -- scroll-driven pin, rAF throttled — desktop only. Below 768px the
   //    section is a normal, compact block (Figma mobile frame is ~795px,
   //    no room for a scroll-jacked pin), so cases only switch by tapping. --
-  var isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+  var isDesktop = window.PunchLayout.desktop;
 
   if (isDesktop) {
     var ticking = false;
