@@ -3155,7 +3155,8 @@ html.has-noise .work__texture {
   /* Process: the two title words keep a gap, the card strip starts at the
      screen edge (frame: cards x = -24) */
   .process__title-row { flex-wrap: nowrap; gap: 0.4375rem; }
-  .process__fan-wrap { margin-inline: calc(var(--m-edge) * -1); }
+  .process__body { padding-inline: 0; }
+  .process__head { padding-inline: var(--m-edge); }
 
   /* Work and Process are flush with their neighbours: no rounded top corners
      (they showed the yellow section behind) */
