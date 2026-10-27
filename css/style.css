@@ -2473,7 +2473,10 @@ img, svg { display: block; max-width: 100%; }
    CTA FORM — DESKTOP ≥ 1024 px
    ========================================================================== */
 @media (min-width: 1024px) {
-  .cta2 { padding: 6.25rem 3.472%; }   /* 100px / 50px */
+  .cta2 {
+    padding: 6.25rem var(--grid-pad);   /* 100px / the grid margin (50px @1440) */
+    min-height: 48.625rem;              /* 778px, the Figma block */
+  }
 
   .cta2__body { gap: 3.125rem; }   /* 50px */
   .cta2__header { gap: 0.875rem; }   /* 14px */
@@ -2482,6 +2485,17 @@ img, svg { display: block; max-width: 100%; }
   .cta2__title-line { white-space: nowrap; }
 
   .cta2__subtitle { font-size: 1.125rem; max-width: none; }   /* 18px */
+
+  .cta2__form { position: relative; gap: 2.5rem; }   /* 40px: input block -> button, as in Figma */
+  /* the status line (empty until the form is sent) hangs below the form
+     instead of adding height of its own */
+  .cta2__status {
+    position: absolute;
+    inset: 100% 0 auto;
+    min-height: 0;
+    margin-top: 0.75rem;
+    text-align: center;
+  }
 
   .cta2__fields { gap: 2rem; max-width: none; }   /* 32px */
   .cta2__row { flex-direction: row; gap: 0.75rem; }   /* 12px */
@@ -2623,36 +2637,48 @@ img, svg { display: block; max-width: 100%; }
 
 /* ==========================================================================
    FOOTER — DESKTOP ≥ 1024 px
+   Left block on columns 1-5 (830px, Figma 822), right block on columns 6-8
+   (490px from the 6th-column guide); "( SOCIALS )" starts on the 7th
+   column (x=1070, Figma 1067).
    ========================================================================== */
 @media (min-width: 1024px) {
   .footer__body {
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: space-between;
-    padding: 2.5rem 3.1875rem;   /* 40px / 51px */
+    display: grid;
+    grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
+    column-gap: var(--grid-gap);
+    align-items: start;
+    padding: 2.5rem var(--grid-pad);   /* 40px / the grid margin */
   }
 
   .footer__col--left {
-    width: 51.375rem;   /* 822px */
-    flex: none;
+    grid-column: 1 / 6;
     gap: 7.875rem;   /* 126px */
   }
 
   .footer__call { display: flex; }
 
   .footer__copyright { order: 1; }
-  .footer__logo { order: 2; }
+  .footer__logo { order: 2; width: 95.2%; }   /* 790px of the 830px block, as in Figma */
 
   .footer__col--right {
-    width: 30.625rem;   /* 490px */
-    flex: none;
+    grid-column: 6 / 9;
+    display: grid;
+    grid-template-columns: subgrid;
+    column-gap: var(--grid-gap);
+    grid-template-rows: auto 1fr;
     height: 22.5rem;    /* 360px */
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
   }
 
-  .footer__links { gap: 5.625rem; }   /* 90px */
+  .footer__links {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+    column-gap: var(--grid-gap);
+    align-items: start;
+  }
+
+  .footer__link-group:first-child { grid-column: 1 / 2; }   /* sitemap: 6th-column guide */
+  .footer__link-group:last-child  { grid-column: 2 / 4; }   /* socials: 7th column */
 
   .footer__link-label { font-size: 0.875rem; line-height: 1.5; }   /* 14px */
 
@@ -2662,6 +2688,8 @@ img, svg { display: block; max-width: 100%; }
   .footer__link-list-item--mobile-only { display: none; }
 
   .footer__legal {
+    grid-column: 1 / -1;
+    align-self: end;
     display: flex;
     flex-direction: row;
     align-items: flex-end;
