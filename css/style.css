@@ -2765,3 +2765,22 @@ html.has-noise .cta__texture,
 html.has-noise .work__texture {
   display: none;
 }
+
+/* --------------------------------------------------------------------------
+   Code-drawn halftone (js/dotfield.js): the About background, replacing
+   the static PNG. Without the script the PNG stays.
+   -------------------------------------------------------------------------- */
+.dotfield-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.dotfield-layer canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+html.has-dotfield .about::before { display: none; }
