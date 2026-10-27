@@ -44,6 +44,19 @@
   /* Hairlines */
   --rule: 2px;
 
+  /* ---- Grid (Figma desktop frame, 1440 px): 8 columns, 50 px margins,
+     20 px gutters; guides sit on columns 3 and 6.
+     In rem, so it grows with the fluid root below (1 rem = 16 px @1440).
+     Column starts @1440: 50 · 220 · 390 · 560 · 730 · 900 · 1070 · 1240.
+     --grid-pad is the side padding of a full-width block: the plain margin
+     while the page is narrower than --page-w, and the "centred column"
+     margin once the root stops growing (>= 1920 px).                      */
+  --grid-cols: 8;
+  --grid-margin: 3.125rem;                 /* 50px */
+  --grid-gap: 1.25rem;                     /* 20px */
+  --page-w: 90rem;                         /* 1440px */
+  --grid-pad: max(var(--grid-margin), calc(50% - (var(--page-w) / 2 - var(--grid-margin))));
+
   /* Single brand motion curve — same 4 control points as the GSAP
      CustomEase("brandEase") registered in index.html, so CSS transitions
      and GSAP tweens read as one system instead of mismatched defaults. */
@@ -58,6 +71,21 @@
 *::after { box-sizing: border-box; }
 
 html { -webkit-text-size-adjust: 100%; }
+
+/* --------------------------------------------------------------------------
+   Fluid root: every rem on the desktop layout follows this value.
+     1440 -> 1920 : 100vw / 90, exactly proportional to the Figma frame
+                    (16px -> 21.33px)
+     1024 -> 1440 : slides 14.0 -> 16px, slower than the width, so text
+                    never drops much below the Figma sizes
+     beyond 1920  : stops at 21.33px; the page stays centred (--grid-pad)
+   Media queries below are in px on purpose: they do not depend on the root.
+   -------------------------------------------------------------------------- */
+@media (min-width: 1024px) {
+  html {
+    font-size: min(21.3333px, max(calc(100vw / 90), calc(12.8px + (100vw - 768px) * 0.0047619)));
+  }
+}
 
 body {
   margin: 0;
@@ -313,26 +341,25 @@ img, svg { display: block; max-width: 100%; }
    ========================================================================== */
 @media (min-width: 1024px) {
   .hero {
-    /* Desktop/Heading/Hero — 230px @1440 (15.972vw) */
-    /* caps at ~256px so the hero still fits a 16:9 desktop viewport */
-    --fs-display: clamp(4rem, 15.972vw, 16rem);
+    /* Desktop/Heading/Hero — 230px @1440 */
+    --fs-display: 14.375rem;
     /* gap between head-line rows: ~17px @230px */
     --row-gap: calc(var(--fs-display) * 0.073);
 
-    /* Desktop/Body/Small     — 14px @1440 (0.972vw) */
-    --fs-label: clamp(0.75rem, 0.972vw, 1rem);
-    /* Desktop/Links/Header   — 16px @1440 (1.111vw) */
-    --fs-link: clamp(0.875rem, 1.111vw, 1.125rem);
-    /* Desktop/Body/Paragraph — 18px @1440 (1.25vw)  */
-    --fs-text: clamp(0.9375rem, 1.25vw, 1.25rem);
+    /* Desktop/Body/Small     — 14px @1440 */
+    --fs-label: 0.875rem;
+    /* Desktop/Links/Header   — 16px @1440 */
+    --fs-link: 1rem;
+    /* Desktop/Body/Paragraph — 18px @1440 */
+    --fs-text: 1.125rem;
     --fs-cta: var(--fs-link);
 
     --grain: 0.01;
     --tag-nudge: 0.9em;
     --lead-nudge: 0em;
 
-    padding-inline: 3.472%;      /*  50px @1440 */
-    padding-block: 2.43% 7.9%;   /*  35px / 114px @1440 */
+    padding-inline: var(--grid-pad);   /* 50px @1440 */
+    padding-block: 2.1875rem 7.125rem; /* 35px / 114px @1440 */
 
     /* Halftone hands — a background layer, so the artwork stays behind the
        type without a single absolutely positioned element.
@@ -344,8 +371,9 @@ img, svg { display: block; max-width: 100%; }
        that file allows. Swap the file and re-check the three values below
        once the correct export is available — nothing else has to change.
 
-       Size / offset are expressed in vw, so the artwork scales with the
-       viewport exactly like the rest of the block.                          */
+       Size / offset are in rem, so the artwork scales with the page like
+       the rest of the block (this PNG is only the fallback: the canvas in
+       js/punch-wall.js draws the hands when scripts run).                   */
     background-image:
       url("../assets/img/main-illustration.png"),
       repeating-linear-gradient(
@@ -356,25 +384,25 @@ img, svg { display: block; max-width: 100%; }
         rgba(0, 0, 0, 0)             10px 13px
       );
     background-repeat: no-repeat, repeat;
-    background-size: 98.26vw auto, auto;
-    background-position: 0.04vw -1.77vw, 0 0;
+    background-size: 88.4rem auto, auto;      /* 1415px @1440 */
+    background-position: 0.04rem -1.6rem, 0 0;
     background-blend-mode: multiply, normal;
   }
 
-  /* ---- 8-column grid, gutter 20px @1440 (1.493%) ---------------------- */
+  /* ---- 8-column grid, gutter 20px @1440 ------------------------------- */
   .hero__bar,
   .hero__stage {
-    grid-template-columns: repeat(8, 1fr);
-    column-gap: 1.493%;
+    grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
+    column-gap: var(--grid-gap);
   }
 
   .hero__bar {
     align-items: baseline;
-    margin-block-end: 3.66%;  /* 49px @1440 (% of the 1340px content box) */
+    margin-block-end: 3.0625rem;  /* 49px @1440 */
   }
 
   .hero__logo {
-    inline-size: clamp(3.5rem, 5.625vw, 7rem);  /* 81px @1440 */
+    inline-size: 5.0625rem;  /* 81px @1440 */
     align-self: center;
   }
 
