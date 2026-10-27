@@ -2271,15 +2271,16 @@ img, svg { display: block; max-width: 100%; }
 
   .process__fan-wrap { overflow: visible; }
 
-  /* The Figma fan is wider than the page (the 5th card ends at 110.7% of the
-     content, so it ran off the screen). The whole fan, cards included, is
-     drawn at 90.3% (= 100 / 110.7): the 5th card now ends on the right
-     margin and every card is fully visible. Sizes are in cqw (fan width),
-     so cards keep their proportions at any page width. */
+  /* The card fan is wider than the page on purpose (130% of the content): cards
+     are bigger, the last ones run off the right edge while they arrive, and
+     once all are in place the fan pans left (see the Process script in
+     index.html) so the first card leaves and the last one is fully shown.
+     Sizes are in cqw (fan width), so cards keep their proportions at any
+     page width. */
   .process__fan {
-    width: 100%;
+    width: 130%;
     height: auto;
-    aspect-ratio: 1340 / 380.23;   /* 421px x 0.903 */
+    aspect-ratio: 1340 / 380.23;
     container-type: inline-size;
   }
 
@@ -3061,54 +3062,40 @@ html.has-noise .work__texture {
   .footer__copyright { font-size: max(11.5px, 0.75rem); }
 }
 
-/* Work below 1024: the three case names become tabs across the top, the photo
-   and the text sit underneath. Pin and scroll switching are unchanged. */
+/* Work below 1024: the same stack as the mobile frame, at tablet scale: the case
+   list (brackets left and right) on top, then the wide photo, then Context and
+   What we did side by side, then Result. Pin and scroll switching are unchanged. */
 @media (min-width: 768px) and (max-width: 1023.98px) {
   .work__grid {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2.5rem;
     height: auto;
-    align-items: start;
-    row-gap: 2.5rem;
   }
 
   .work__list {
-    grid-column: 1 / -1;
-    grid-row: 1;
-    justify-self: stretch;
     width: 100%;
+    justify-content: space-between;
   }
 
-  .work__bracket { display: none; }
-
-  .work__list-viewport { width: 100%; height: auto; }
-  .work__list-track {
-    display: flex;
-    gap: 2.5rem;
-    transform: none;
+  .work__list-viewport {
+    width: auto;
+    flex: 1 1 auto;
   }
-  .work__list-item {
-    flex: none;
-    height: auto;
-    line-height: 1.5;
-    padding-block-end: 0.25rem;
-    border-bottom: 2px solid transparent;
-    font-size: 1.25rem;
-    text-align: left;
-  }
-  .work__list-item.is-active { border-bottom-color: var(--c-brand); }
 
   .work__image {
-    grid-column: 1 / 5;
-    grid-row: 2;
-    justify-self: stretch;
     width: 100%;
-    height: auto;
-    aspect-ratio: 342 / 443;
+    height: 15rem;
+    justify-self: auto;
   }
 
-  .work__details {
-    grid-column: 5 / 9;
-    grid-row: 2;
-    height: auto;
+  .work__details { width: 100%; height: auto; }
+
+  .work__pair {
+    display: flex;
+    flex-direction: row;
+    gap: 2.5rem;
   }
 
   .work__field-text,

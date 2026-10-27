@@ -22,7 +22,9 @@
     var rootPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
     var changed = false;
     els.forEach(function (el) {
-      var natural = parseFloat(el.getAttribute('data-fit-rem')) * rootPx;
+      /* below 1024 some blocks stack differently (see data-fit-rem-tablet) */
+      var tablet = window.innerWidth < 1024 && el.hasAttribute('data-fit-rem-tablet');
+      var natural = parseFloat(el.getAttribute(tablet ? 'data-fit-rem-tablet' : 'data-fit-rem')) * rootPx;
       /* part of the height that zoom cannot shrink (the Process card fan keeps
          its width, so its height follows the width): it is subtracted first */
       var fixed = (parseFloat(el.getAttribute('data-fit-fixed-rem')) || 0) * rootPx;

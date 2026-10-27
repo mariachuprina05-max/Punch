@@ -396,7 +396,7 @@
     <div class="work__sticky">
       <div class="work__texture" aria-hidden="true"></div>
 
-      <div class="work__body" data-fit-rem="61.65">
+      <div class="work__body" data-fit-rem="61.65" data-fit-rem-tablet="74">
         <div class="work__head">
           <div class="work__head-r1">
             <p class="work__label"><span class="work__accent">( </span>Selected work<span class="work__accent"> )</span></p>
@@ -442,7 +442,7 @@
   <div class="process__grad process__grad--top" aria-hidden="true"></div>
   <div class="process__grad process__grad--bottom" aria-hidden="true"></div>
 
-  <div class="process__body" data-fit-rem="49.3" data-fit-fixed-rem="23.76">
+  <div class="process__body" data-fit-rem="56.43" data-fit-fixed-rem="30.89">
     <div class="process__head">
       <p class="process__label"><span class="process__accent">( </span>Process<span class="process__accent"> )</span></p>
       <div class="process__title-row">
@@ -940,11 +940,23 @@
     }
   });
 
+  /* the fan is wider than the window: once the cards are in place it pans
+     left, so the first card leaves and the last one is shown whole */
+  var fan = document.getElementById('processFan');
+  var PAN_UNIT = 1.1;                     /* screens of scroll for the pan */
+  function panDistance() {
+    var r = fan.getBoundingClientRect();
+    var zoom = r.width / fan.offsetWidth || 1;        /* the height guard (js/fit.js) zooms the body */
+    var left = r.left - gsap.getProperty(fan, 'x') * zoom;   /* undo the pan when measured mid-scroll */
+    /* the fan sits at the left page margin; the right margin is the same */
+    return Math.max(0, r.width - (window.innerWidth - 2 * left)) / zoom;
+  }
+
   var tl = gsap.timeline({
     scrollTrigger: {
       trigger: section,
       start: 'top top',
-      end: '+=' + Math.round(window.innerHeight * TOTAL),
+      end: '+=' + Math.round(window.innerHeight * (TOTAL + PAN_UNIT)),
       pin: true,
       scrub: 1,
       invalidateOnRefresh: true
@@ -959,6 +971,9 @@
       tl.to(outro, { xPercent: 0, opacity: 1, ease: EASE, duration: CARD_UNIT }, pos);
     }
   });
+
+  tl.to(fan, { x: function () { return -panDistance(); }, ease: 'none', duration: PAN_UNIT },
+        TOTAL - CARD_UNIT * 0.25);
 })();
 </script>
 
