@@ -116,7 +116,9 @@
   function artFit(W, H) {
     var s;
     if (W >= HERO_MIN_W) {
-      s = Math.max(W / ART_W, H / ART_H);
+      /* cover, but never zoomed past 1.2x the width fit: in a tall, narrow window
+         (a tablet in portrait) the hands would otherwise slide off both sides */
+      s = Math.max(W / ART_W, Math.min(H / ART_H, 1.2 * W / ART_W));
       /* nudged up so the lower hand clears the hero's bottom fade */
       return { s: s, ox: (W - ART_W * s) / 2, oy: (H - ART_H * s) / 2 - H * 0.05 };
     }

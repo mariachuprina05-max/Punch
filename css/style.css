@@ -2905,6 +2905,18 @@ html.no-scroll body { overflow: hidden; height: 100%; }
   text-wrap: balance;   /* on phones: two even lines, no lonely "IF" */
 }
 
+/* from 768 up the preloader copy follows the page width like every other
+   heading (150px @1440, 200px @1920, 80px @768) */
+@media (min-width: 768px) {
+  .preloader { gap: max(1rem, calc(34.56 * var(--dpx))); }
+  .preloader__text { font-size: calc(150 * var(--dpx)); }
+  .preloader__bracket { height: max(2rem, calc(50 * var(--dpx))); }
+  .preloader__rotator-window {
+    min-width: calc(420 * var(--dpx));
+    font-size: max(1rem, calc(24 * var(--dpx)));
+  }
+}
+
 /* bottom fade, per the Figma "Gradient_bottom" layer: taller, and solid
    brand yellow from its midpoint down, so the leads and "Scroll" sit on
    a clean backing above the halftone */
@@ -3025,12 +3037,19 @@ html.has-noise .work__texture {
 
   .about { --about-fs-xl: calc(78 * var(--dpx)); }   /* "($120M+)" no longer meets "20+" */
 
-  /* Work: the list, photo and details each get their own columns */
-  .work__list-viewport { width: 100%; }
-  .work__list-item { font-size: 1rem; }
-  .work__image { width: 100%; justify-self: stretch; }
-  .work__field-text,
-  .work__result-list { font-size: 1rem; }
+  /* CTA: the whole composition scales with the width (like a poster), so the
+     hand keeps its distance from the button */
+  .cta {
+    padding-top: calc(150 * var(--dpx));
+    padding-bottom: calc(100 * var(--dpx));
+    min-height: calc(900 * var(--dpx));
+  }
+  .cta__body { row-gap: calc(135 * var(--dpx)); }
+  .cta__hand {
+    width: calc(870 * var(--dpx));
+    left: calc(var(--page-offset) - 30 * var(--dpx));
+    top: calc(348 * var(--dpx));
+  }
 
   /* Footer: the right column takes four columns so the e-mail fits */
   .footer__col--left  { grid-column: 1 / 5; gap: 5rem; }
@@ -3040,4 +3059,58 @@ html.has-noise .work__texture {
   .footer__legal-links { white-space: nowrap; }
   .footer__legal-links { gap: 1.25rem; font-size: 0.875rem; }
   .footer__copyright { font-size: max(11.5px, 0.75rem); }
+}
+
+/* Work below 1024: the three case names become tabs across the top, the photo
+   and the text sit underneath. Pin and scroll switching are unchanged. */
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .work__grid {
+    height: auto;
+    align-items: start;
+    row-gap: 2.5rem;
+  }
+
+  .work__list {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    justify-self: stretch;
+    width: 100%;
+  }
+
+  .work__bracket { display: none; }
+
+  .work__list-viewport { width: 100%; height: auto; }
+  .work__list-track {
+    display: flex;
+    gap: 2.5rem;
+    transform: none;
+  }
+  .work__list-item {
+    flex: none;
+    height: auto;
+    line-height: 1.5;
+    padding-block-end: 0.25rem;
+    border-bottom: 2px solid transparent;
+    font-size: 1.25rem;
+    text-align: left;
+  }
+  .work__list-item.is-active { border-bottom-color: var(--c-brand); }
+
+  .work__image {
+    grid-column: 1 / 5;
+    grid-row: 2;
+    justify-self: stretch;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 342 / 443;
+  }
+
+  .work__details {
+    grid-column: 5 / 9;
+    grid-row: 2;
+    height: auto;
+  }
+
+  .work__field-text,
+  .work__result-list { font-size: 1rem; }
 }
