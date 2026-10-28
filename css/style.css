@@ -3289,3 +3289,89 @@ html.has-noise .work__texture {
 /* the Approach block's bottom fade is a solid #121212 that hides the grain at its edge;
    with the grain on, the pixel transition below it would show a step, so drop the fade */
 html.has-noise .approach__grad--bottom { display: none; }
+
+/* ==========================================================================
+   MOBILE MENU (< 768) — Figma "Мобільна версія (375 px)", panel 272 × 485.
+   A black rounded panel over the hero, anchored to the right margin where the
+   ( MENU ) button sits. Opened by js/mobile-menu.js. Sizes are px / 16 at 375.
+   ========================================================================== */
+.mmenu { display: none; }
+
+@media (max-width: 767.98px) {
+  .mmenu {
+    position: absolute;
+    z-index: 5;
+    top: 0.5rem;                    /* the Figma panel sits 13px above the header row (59px under its status bar); here the row is at 21px */
+    right: var(--m-edge);           /* 24px */
+    width: 17rem;                   /* 272px */
+    height: min(30.3125rem, calc(100svh - 5rem));   /* 485px */
+    box-sizing: border-box;
+    padding: 1.125rem 1.25rem;      /* 18px / 20px */
+    border-radius: 1.875rem;        /* 30px */
+    background: var(--c-black);
+    color: var(--c-white);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transform-origin: 100% 0;
+    font-family: var(--ff-text);
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+  .mmenu[hidden] { display: none; }
+
+  .mmenu__top { display: flex; flex-direction: column; gap: 0.75rem; min-height: 0; }
+
+  .mmenu__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .mmenu__label {
+    font-size: 1rem;
+    line-height: 1.16;
+    letter-spacing: -0.01em;
+    color: var(--c-brand);
+  }
+
+  .mmenu__close {
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--c-brand);
+    cursor: pointer;
+    flex: none;
+    display: block;
+  }
+  .mmenu__close svg { display: block; inline-size: 100%; block-size: 100%; }
+
+  .mmenu__nav { display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+
+  .mmenu__link {
+    font-size: 1.5rem;
+    line-height: 1.5;
+    color: var(--c-white);
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mmenu__link:hover,
+  .mmenu__link:active { color: var(--c-brand); }
+
+  .mmenu__close:focus-visible,
+  .mmenu__link:focus-visible { outline: 2px solid var(--c-brand); outline-offset: 4px; border-radius: 2px; }
+
+  .mmenu__logo { color: var(--c-brand-second); flex: none; line-height: 0; }
+  .mmenu__logo svg { display: block; inline-size: 100%; block-size: auto; }
+
+  html.menu-open { overflow: hidden; }
+}
+
+/* short landscape phones: no room for the logo */
+@media (max-width: 767.98px) and (max-height: 520px) {
+  .mmenu__logo { display: none; }
+  .mmenu { overflow-y: auto; }
+}

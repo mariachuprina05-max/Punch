@@ -6,7 +6,7 @@
 <title>PUNCH — Marketing people actually notice</title>
 <meta name="description" content="For brands that refuse to blend in. We build sharper messaging and creative systems that make brands impossible to ignore.">
 <link rel="preload" href="assets/fonts/BootzyCondensedTM-Regular.ttf" as="font" type="font/ttf" crossorigin>
-<link rel="stylesheet" href="css/style.css?v=202610281546">
+<link rel="stylesheet" href="css/style.css?v=202610281713">
 <script>
   /* hide the hero copy before first paint so its entrance can play; the
      timeout is only a safety net if the intro script never runs */
@@ -91,8 +91,28 @@
       <svg class="icon-arrow" viewBox="0 0 19 11" fill="none" aria-hidden="true" focusable="false"><path d="M1 0v5h16.5" stroke="currentColor" stroke-width="2"/><path d="M12.5 0 18 5l-5.5 5" stroke="currentColor" stroke-width="2"/></svg><span>BOOK A CALL</span>
     </a>
 
-    <button class="hero__menu" type="button" aria-expanded="false">( MENU )</button>
+    <button class="hero__menu" type="button" aria-expanded="false" aria-controls="mobileMenu">( MENU )</button>
   </header>
+
+  <!-- mobile menu: opened by the ( MENU ) button, see js/mobile-menu.js -->
+  <div class="mmenu" id="mobileMenu" role="dialog" aria-modal="true" aria-label="Menu" hidden>
+    <div class="mmenu__top">
+      <div class="mmenu__head">
+        <span class="mmenu__label">( MENU )</span>
+        <button class="mmenu__close" type="button" aria-label="Close menu">
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false"><path d="M3 3l14 14M17 3L3 17" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></svg>
+        </button>
+      </div>
+      <nav class="mmenu__nav" aria-label="Main">
+        <a class="mmenu__link" href="#about">About</a>
+        <a class="mmenu__link" href="#method">Method</a>
+        <a class="mmenu__link" href="#work">Work</a>
+        <a class="mmenu__link" href="#services">Services</a>
+        <a class="mmenu__link" href="#contact">Contact</a>
+      </nav>
+    </div>
+    <div class="mmenu__logo" aria-hidden="true"></div>
+  </div>
 
   <div class="hero__stage">
 
@@ -685,15 +705,15 @@
 })();
 </script>
 
-<script src="js/vendor/lenis.min.js?v=202610281546"></script>
-<script src="js/vendor/gsap.min.js?v=202610281546"></script>
-<script src="js/vendor/ScrollTrigger.min.js?v=202610281546"></script>
-<script src="js/vendor/SplitText.min.js?v=202610281546"></script>
-<script src="js/vendor/CustomEase.min.js?v=202610281546"></script>
-<script src="js/layout.js?v=202610281546"></script>
-<script src="js/punch-hands-dots.js?v=202610281546"></script>
-<script src="js/punch-wall.js?v=202610281546"></script>
-<script src="js/pixel-trail.js?v=202610281546"></script>
+<script src="js/vendor/lenis.min.js?v=202610281713"></script>
+<script src="js/vendor/gsap.min.js?v=202610281713"></script>
+<script src="js/vendor/ScrollTrigger.min.js?v=202610281713"></script>
+<script src="js/vendor/SplitText.min.js?v=202610281713"></script>
+<script src="js/vendor/CustomEase.min.js?v=202610281713"></script>
+<script src="js/layout.js?v=202610281713"></script>
+<script src="js/punch-hands-dots.js?v=202610281713"></script>
+<script src="js/punch-wall.js?v=202610281713"></script>
+<script src="js/pixel-trail.js?v=202610281713"></script>
 <script>
   /* cursor: orange pixel trail (brand second colour) over the whole page */
   PixelTrail.mount({
@@ -705,9 +725,9 @@
     gooey: 1
   });
 </script>
-<script src="js/dev-grid.js?v=202610281546"></script>
-<script src="js/fit.js?v=202610281546"></script>
-<script src="js/noise.js?v=202610281546"></script>
+<script src="js/dev-grid.js?v=202610281713"></script>
+<script src="js/fit.js?v=202610281713"></script>
+<script src="js/noise.js?v=202610281713"></script>
 <script>
   /* film grain on every block of the page. Add or remove selectors here
      to change where it sits. */
@@ -724,11 +744,13 @@
     patternAlpha: 18
   });
 </script>
-<script src="js/dotfield.js?v=202610281546"></script>
-<script src="js/pixel-seam.js?v=202610281546"></script>
+<script src="js/dotfield.js?v=202610281713"></script>
+<script src="js/pixel-seam.js?v=202610281713"></script>
 <script>PixelSeam.mount({ targets: '[data-pixel-from]' });</script>
-<script src="js/presvcs-dots.js?v=202610281546"></script>
-<script src="js/presvcs-fists.js?v=202610281546"></script>
+<script src="js/mobile-menu.js?v=202610281713"></script>
+<script>MobileMenu.mount();</script>
+<script src="js/presvcs-dots.js?v=202610281713"></script>
+<script src="js/presvcs-fists.js?v=202610281713"></script>
 <script>window.presvcsFists = PresvcsFists.mount({ target: '.presvcs' });</script>
 <script>
   /* About and Process backgrounds: the halftone animation, drawn in code
