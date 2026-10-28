@@ -6,7 +6,7 @@
 <title>PUNCH — Marketing people actually notice</title>
 <meta name="description" content="For brands that refuse to blend in. We build sharper messaging and creative systems that make brands impossible to ignore.">
 <link rel="preload" href="assets/fonts/BootzyCondensedTM-Regular.ttf" as="font" type="font/ttf" crossorigin>
-<link rel="stylesheet" href="css/style.css?v=202610281530">
+<link rel="stylesheet" href="css/style.css?v=202610281546">
 <script>
   /* hide the hero copy before first paint so its entrance can play; the
      timeout is only a safety net if the intro script never runs */
@@ -685,15 +685,15 @@
 })();
 </script>
 
-<script src="js/vendor/lenis.min.js?v=202610281530"></script>
-<script src="js/vendor/gsap.min.js?v=202610281530"></script>
-<script src="js/vendor/ScrollTrigger.min.js?v=202610281530"></script>
-<script src="js/vendor/SplitText.min.js?v=202610281530"></script>
-<script src="js/vendor/CustomEase.min.js?v=202610281530"></script>
-<script src="js/layout.js?v=202610281530"></script>
-<script src="js/punch-hands-dots.js?v=202610281530"></script>
-<script src="js/punch-wall.js?v=202610281530"></script>
-<script src="js/pixel-trail.js?v=202610281530"></script>
+<script src="js/vendor/lenis.min.js?v=202610281546"></script>
+<script src="js/vendor/gsap.min.js?v=202610281546"></script>
+<script src="js/vendor/ScrollTrigger.min.js?v=202610281546"></script>
+<script src="js/vendor/SplitText.min.js?v=202610281546"></script>
+<script src="js/vendor/CustomEase.min.js?v=202610281546"></script>
+<script src="js/layout.js?v=202610281546"></script>
+<script src="js/punch-hands-dots.js?v=202610281546"></script>
+<script src="js/punch-wall.js?v=202610281546"></script>
+<script src="js/pixel-trail.js?v=202610281546"></script>
 <script>
   /* cursor: orange pixel trail (brand second colour) over the whole page */
   PixelTrail.mount({
@@ -705,9 +705,9 @@
     gooey: 1
   });
 </script>
-<script src="js/dev-grid.js?v=202610281530"></script>
-<script src="js/fit.js?v=202610281530"></script>
-<script src="js/noise.js?v=202610281530"></script>
+<script src="js/dev-grid.js?v=202610281546"></script>
+<script src="js/fit.js?v=202610281546"></script>
+<script src="js/noise.js?v=202610281546"></script>
 <script>
   /* film grain on every block of the page. Add or remove selectors here
      to change where it sits. */
@@ -724,11 +724,11 @@
     patternAlpha: 18
   });
 </script>
-<script src="js/dotfield.js?v=202610281530"></script>
-<script src="js/pixel-seam.js?v=202610281530"></script>
+<script src="js/dotfield.js?v=202610281546"></script>
+<script src="js/pixel-seam.js?v=202610281546"></script>
 <script>PixelSeam.mount({ targets: '[data-pixel-from]' });</script>
-<script src="js/presvcs-dots.js?v=202610281530"></script>
-<script src="js/presvcs-fists.js?v=202610281530"></script>
+<script src="js/presvcs-dots.js?v=202610281546"></script>
+<script src="js/presvcs-fists.js?v=202610281546"></script>
 <script>window.presvcsFists = PresvcsFists.mount({ target: '.presvcs' });</script>
 <script>
   /* About and Process backgrounds: the halftone animation, drawn in code
@@ -1011,6 +1011,7 @@
   var cases = [
     {
       name: "NeonForge",
+      image: "assets/img/cases-placeholder.jpg",
       context: "The team had a working product, but the landing page looked like a side project — nobody could tell it was ready for real customers.",
       whatWeDid: "We rebuilt the visual identity, simplified the navigation, and rewrote the homepage copy around the core value proposition.",
       result: [
@@ -1021,6 +1022,7 @@
     },
     {
       name: "BoldGrid Systems",
+      image: "assets/img/case-2.jpg",
       context: "The product was strong, but the brand and website didn’t clearly communicate its value",
       whatWeDid: "We refined the positioning, clarified the messaging, and redesigned the website to highlight the product’s strengths",
       result: [
@@ -1031,6 +1033,7 @@
     },
     {
       name: "Kinetiq Labs",
+      image: "assets/img/case-3.jpg",
       context: "Kinetiq had great retention numbers internally, but their public-facing site failed to build trust with new enterprise leads.",
       whatWeDid: "We introduced a clear case-study section, added social proof above the fold, and streamlined the request-a-demo flow.",
       result: [
@@ -1045,6 +1048,11 @@
   var wrap = document.getElementById('workWrap');
   var track = document.getElementById('workListTrack');
   var details = document.getElementById('workDetails');
+  var photo = document.querySelector('.work__image');
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /* a case change is animated (GSAP) unless the user asks for less motion */
+  var animated = !reduceMotion && typeof gsap !== 'undefined' && typeof SplitText !== 'undefined';
+  if (animated) document.documentElement.classList.add('work-gsap');
 
   wrap.style.setProperty('--n', N);
 
@@ -1092,24 +1100,96 @@
   });
   var panels = details.querySelectorAll('.work__panel');
 
+  // -- one photo per case, stacked in the same box ----------------------------
+  photo.innerHTML = '';
+  cases.forEach(function (c) {
+    var img = document.createElement('img');
+    img.className = 'work__photo';
+    img.src = c.image;
+    img.alt = c.name + ' — case study preview';
+    img.decoding = 'async';
+    photo.appendChild(img);
+  });
+  var photos = photo.querySelectorAll('.work__photo');
+
+  // -- case change animation ----------------------------------------------------
+  /* The new case's headings (Context / What we did / Result) rise out of their
+     masks like every heading on the site (PunchReveal), its text and result
+     lines follow, and the photo is uncovered over the old one. Switching fast
+     is safe: whatever is still running is stopped and put back first. */
+  function stopPanel(panel) {
+    if (panel._tweens) panel._tweens.forEach(function (t) { t.kill(); });
+    if (panel._splits) panel._splits.forEach(function (sp) { sp.revert(); });
+    panel._tweens = []; panel._splits = [];
+    gsap.set(panel.querySelectorAll('.work__field-text, .work__result-list li, .work__result'), { clearProps: 'opacity,transform' });
+    gsap.set(panel, { clearProps: 'opacity,transform' });
+  }
+
+  function revealPanel(panel, dir) {
+    stopPanel(panel);
+    var titles = panel.querySelectorAll('.work__field-title');
+    var lines = panel.querySelectorAll('.work__field-text, .work__result-list li');
+    var box = panel.querySelector('.work__result');
+    titles.forEach(function (t, i) {
+      if (!window.PunchReveal) return;
+      var split = window.PunchReveal.prepare(t);
+      panel._splits.push(split);
+      panel._tweens.push(window.PunchReveal.play(split, i * 0.1));
+    });
+    panel._tweens.push(gsap.fromTo(lines, { y: 14 * dir, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.9, ease: 'expo.out', stagger: 0.06, delay: 0.25, clearProps: 'opacity,transform' }));
+    panel._tweens.push(gsap.fromTo(box, { opacity: 0 }, { opacity: 1, duration: 0.5, ease: 'power2.out', clearProps: 'opacity' }));
+  }
+
+  function hidePanel(panel, dir) {
+    stopPanel(panel);
+    panel.classList.add('is-leaving');
+    panel._tweens.push(gsap.to(panel, {
+      opacity: 0, y: -12 * dir, duration: 0.25, ease: 'power2.in',
+      onComplete: function () { panel.classList.remove('is-leaving'); gsap.set(panel, { clearProps: 'opacity,transform' }); }
+    }));
+  }
+
+  function showPhoto(index, prev, dir) {
+    photos.forEach(function (img, i) {
+      gsap.killTweensOf(img);
+      gsap.set(img, { clearProps: 'clipPath,scale' });
+      img.classList.toggle('is-active', i === index);
+      img.classList.toggle('is-under', i === prev);
+    });
+    gsap.fromTo(photos[index],
+      { clipPath: dir > 0 ? 'inset(100% 0% 0% 0%)' : 'inset(0% 0% 100% 0%)', scale: 1.08 },
+      { clipPath: 'inset(0% 0% 0% 0%)', scale: 1, duration: 0.9, ease: 'expo.out', clearProps: 'clipPath,scale',
+        onComplete: function () { photos[index].classList.remove('is-under'); if (prev >= 0) photos[prev].classList.remove('is-under'); } });
+  }
+
   // -- active-index state -----------------------------------------------------
   var activeIndex = -1;
 
   function setActive(index) {
     if (index === activeIndex) return;
+    var prev = activeIndex;
+    var dir = index > prev ? 1 : -1;
 
-    if (activeIndex >= 0) {
-      listItems[activeIndex].classList.remove('is-active');
-      panels[activeIndex].classList.remove('is-active');
-      panels[activeIndex].classList.add('is-leaving');
+    if (prev >= 0) {
+      listItems[prev].classList.remove('is-active');
+      panels[prev].classList.remove('is-active');
+      if (!animated) panels[prev].classList.add('is-leaving');
     }
 
     listItems[index].classList.add('is-active');
     panels[index].classList.remove('is-leaving');
     panels[index].classList.add('is-active');
-
     activeIndex = index;
     track.style.setProperty('--active', activeIndex);
+
+    if (!animated || prev < 0) {                  /* first paint, or less motion: no animation */
+      photos.forEach(function (img, i) { img.classList.toggle('is-active', i === index); });
+      return;
+    }
+    if (prev >= 0) hidePanel(panels[prev], dir);
+    revealPanel(panels[index], dir);
+    showPhoto(index, prev, dir);
   }
 
   setActive(0);

@@ -1839,6 +1839,7 @@ html.dot-fists .presvcs__bracket { visibility: hidden; }
 
 /* Case photo — same placeholder throughout */
 .work__image {
+  position: relative;
   width: 100%;
   height: 11.625rem;   /* 186px mobile */
   border-radius: 1.25rem;   /* 20px */
@@ -1846,12 +1847,20 @@ html.dot-fists .presvcs__bracket { visibility: hidden; }
   flex: none;
 }
 
-.work__image img {
+/* one photo per case, stacked: the active one on top, the one it replaces
+   stays underneath while the new one is uncovered (see the Work script) */
+.work__photo {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+  opacity: 0;
+  z-index: 0;
 }
+.work__photo.is-under  { opacity: 1; z-index: 1; }
+.work__photo.is-active { opacity: 1; z-index: 2; }
 
 /* --------------------------------------------------------------------------
    Detail panels — one per case, cross-fading in the same box
@@ -1875,6 +1884,12 @@ html.dot-fists .presvcs__bracket { visibility: hidden; }
 }
 
 .work__panel.is-leaving { transform: translateY(-8px); }
+
+/* with the GSAP case animation the script moves the panels itself: no CSS fade */
+html.work-gsap .work__panel { transition: none; transform: none; visibility: hidden; }
+html.work-gsap .work__panel.is-active,
+html.work-gsap .work__panel.is-leaving { visibility: visible; }
+html.work-gsap .work__panel.is-leaving { opacity: 1; }
 
 .work__panel.is-active {
   position: relative;
@@ -2059,6 +2074,22 @@ html.dot-fists .presvcs__bracket { visibility: hidden; }
   }
 
   .work__result-list { font-size: 1.125rem; }
+}
+
+/* Work at 1024+: the three blocks of the details column fill the photo's height,
+   top to top and bottom to bottom, with the free room shared evenly between them.
+   Every panel always sits in the same box, so nothing jumps when the case changes. */
+@media (min-width: 1024px) {
+  .work__panel,
+  .work__panel.is-active {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    gap: 0;
+    justify-content: space-between;
+  }
+
+  .work__field { flex: none; }   /* natural height: the free room goes between the blocks */
 }
 
 /* ==========================================================================
