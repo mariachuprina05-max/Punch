@@ -2,9 +2,9 @@
    PresvcsFists: the two fists of "Three ways we help brands" made of moving
    particles, the same halftone dots as the preloader and hero hands.
 
-   When the block is scrolled into view the dots of each fist stream in from
-   its side of the window and gather into the fist, which winds up and
-   punches the spot where a bracket of "( STAND OUT )" will be. The brackets
+   When the block is scrolled into view each fist, already made of its dots,
+   slides in from its side of the window, winds up and punches the spot
+   where a bracket of "( STAND OUT )" will be. The brackets
    are not drawn before the hit: on impact their dots burst out of the
    contact point and settle into the bracket shape, a pressure ring runs
    through the dots, and the fists recoil to where the layout puts them.
@@ -22,14 +22,15 @@
   var TAU = Math.PI * 2;
 
   /* timeline, seconds from the start of a fist's own clock */
-  var T_WIND0 = 1.05;                 /* the gathered fist starts to pull back */
-  var T_WIND1 = 1.25;                 /* ...and starts to go */
-  var T_HIT   = 1.40;                 /* contact */
+  var T_SLIDE = 0.7;                  /* the fist has slid in from the edge */
+  var T_WIND0 = T_SLIDE;              /* it starts to pull back */
+  var T_WIND1 = T_WIND0 + 0.2;        /* ...and starts to go */
+  var T_HIT   = T_WIND1 + 0.15;       /* contact */
   var T_RECOIL0 = T_HIT + 0.12;
   var T_RECOIL1 = T_RECOIL0 + 0.7;
   var STAGGER = 0.09;                 /* the right fist lands a hair after the left one */
   var BURST_DUR = 0.55;
-  var T_END = 2.6;                    /* everything has settled */
+  var T_END = 2.3;                    /* everything has settled */
 
   function hash(i, salt) {
     var s = Math.sin(i * 127.1 + salt * 311.7) * 43758.5453;
@@ -118,7 +119,7 @@
       var side = {
         dt: dt, left: isLeft, n: n,
         bx: new Float32Array(n), by: new Float32Array(n), r: new Float32Array(n), tau: new Float32Array(n),
-        delay: new Float32Array(n), dur: new Float32Array(n), fx: new Float32Array(n), fy: new Float32Array(n)
+        slideX: 0
       };
       var cx = 0, cy = 0;
       for (i = 0; i < n; i++) {
@@ -183,15 +184,13 @@
       side.hx = hx; side.hy = hy;
       side.squish = 0.035 * fw;
 
-      /* fly-in: each dot starts outside its window edge, the knuckles first */
+      /* slide-in: the whole fist starts just outside its window edge */
+      var fmin = Infinity, fmax = -Infinity;
       for (i = 0; i < n; i++) {
-        side.delay[i] = (1 - side.tau[i]) * 0.3 + hash(i, 5) * 0.12;
-        side.dur[i] = 0.5 + hash(i, 9) * 0.15;
-        var ex = side.bx[i] + ux * side.dReady, ey = side.by[i] + uy * side.dReady;
-        var sx = isLeft ? -(side.r[i] + 24 * scale) - hash(i, 2) * 0.3 * fw : W + side.r[i] + 24 * scale + hash(i, 2) * 0.3 * fw;
-        var sy = ey + (hash(i, 4) - 0.5) * 140 * scale;
-        side.fx[i] = sx - ex; side.fy[i] = sy - ey;
+        var ex = side.bx[i] + ux * side.dReady;
+        fmin = Math.min(fmin, ex - side.r[i]); fmax = Math.max(fmax, ex + side.r[i]);
       }
+      side.slideX = isLeft ? -(fmax + 24 * scale) : (W - fmin + 24 * scale);
       /* bracket burst: dots nearest the contact point leave first */
       var dmax = 0;
       for (i = 0; i < bn; i++) dmax = Math.max(dmax, Math.hypot(side.Bx[i] - hx, side.By[i] - hy));
@@ -228,16 +227,12 @@
         d = offsetAt(s, tt);
         var since = tt - T_HIT;
         env = since > 0 ? Math.exp(-since / 0.11) : 0;
+        var slide = s.slideX * (1 - easeOutCubic(clamp(tt / T_SLIDE, 0, 1)));
         var ringR = since > 0 ? ringV * since : -1;
         var ringK = since > 0 ? ringA * Math.exp(-since / 0.4) : 0;
         for (i = 0; i < s.n; i++) {
           x = s.bx[i] + s.ux * d - ox; y = s.by[i] + s.uy * d - oy; rr = s.r[i];
-          p = clamp((tt - s.delay[i]) / s.dur[i], 0, 1);
-          if (p < 1) {
-            e = easeOutCubic(p);
-            x += s.fx[i] * (1 - e); y += s.fy[i] * (1 - e);
-            rr *= 0.35 + 0.65 * e;
-          }
+          x += slide;
           if (env > 0.01) {                                  /* the knuckles flatten on impact */
             sh = s.tau[i] * s.tau[i] * s.tau[i] * env;
             x -= s.ux * s.squish * sh; y -= s.uy * s.squish * sh;
