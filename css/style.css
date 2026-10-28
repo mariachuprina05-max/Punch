@@ -1314,6 +1314,17 @@ img, svg { display: block; max-width: 100%; }
   }
 }
 
+/* The fists and brackets are drawn as moving particles (js/presvcs-fists.js). The images stay in
+   the layout, hidden, for their boxes; without the script they are shown as before. */
+.presvcs__dots {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  display: block;
+}
+html.dot-fists .presvcs__fist,
+html.dot-fists .presvcs__bracket { visibility: hidden; }
+
 /* ==========================================================================
    BLOCK 05: SERVICES — sticky stacking cards
    Desktop Figma node 8119:6174 (1440 × 2120), Mobile node 7948:21828
