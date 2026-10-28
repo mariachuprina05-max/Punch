@@ -551,6 +551,8 @@ img, svg { display: block; max-width: 100%; }
   position: relative;
   overflow: hidden;
   border-radius: 50px 50px 0 0;
+  isolation: isolate;
+  clip-path: inset(0 round 50px 50px 0 0);
   background-color: var(--c-bg);
   color: var(--c-white);
   padding-inline: var(--m-edge);            /* 24px @375  */
@@ -2335,12 +2337,16 @@ img, svg { display: block; max-width: 100%; }
   background: var(--c-brand);
   color: var(--c-black);
   border-radius: 1.875rem 1.875rem 0 0;   /* 30px */
+  /* Safari lets blended / canvas children poke out of rounded corners: clip hard */
+  isolation: isolate;
+  clip-path: inset(0 round 1.875rem 1.875rem 0 0);
   padding: 3.75rem var(--m-edge) 2.5rem;   /* 60px / 40px, sides 24px @375 */
 }
 
 .cta2__texture {
   position: absolute;
   inset: 0;
+  border-radius: inherit;
   background: url('../assets/img/approach-texture.png') center / cover no-repeat;
   mix-blend-mode: overlay;
   opacity: 0.5;

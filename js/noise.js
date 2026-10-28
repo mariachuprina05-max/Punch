@@ -83,7 +83,7 @@
          single small texture instead of a full-size canvas per block */
       refreshTile();
       var url = tile.toDataURL('image/png');
-      var px = Math.round(size * o.patternScaleX) + 'px ' + Math.round(size * o.patternScaleY) + 'px';
+      var px = size + 'px ' + size + 'px';   /* 1 css px per grain pixel: a fine grain on phones (desktop uses 2) */
       stills.forEach(function (el) { el.style.backgroundImage = 'url(' + url + ')'; el.style.backgroundSize = px; });
       document.documentElement.classList.add('has-noise');
       return { destroy: function () {
