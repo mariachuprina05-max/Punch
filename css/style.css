@@ -1628,7 +1628,7 @@ img, svg { display: block; max-width: 100%; }
     align-items: start;
   }
 
-  .cta__h1 { white-space: nowrap; }
+  .cta__h1 { white-space: nowrap; font-size: calc(150 * var(--dpx)); }   /* 150px */
 
   .cta__head > .cta__h1:first-child {
     grid-area: 1 / 1 / 2 / 6;      /* columns 1-5 */
@@ -1637,6 +1637,7 @@ img, svg { display: block; max-width: 100%; }
   .cta__desc {
     grid-area: 1 / 6 / 2 / 8;      /* columns 6-7: 320px @1440 */
     margin-top: 0.3125rem;
+    font-size: 1.125rem;           /* 18px */
   }
 
   .cta__h1--indent {
@@ -2293,14 +2294,14 @@ img, svg { display: block; max-width: 100%; }
 
   .process__fan-wrap { overflow: visible; }
 
-  /* The card fan is wider than the page on purpose (130% of the content): cards
+  /* The card fan is wider than the page on purpose (118% of the content): cards
      are bigger, the last ones run off the right edge while they arrive, and
      once all are in place the fan pans left (see the Process script in
      index.html) so the first card leaves and the last one is fully shown.
      Sizes are in cqw (fan width), so cards keep their proportions at any
      page width. */
   .process__fan {
-    width: 130%;
+    width: 118%;
     height: auto;
     aspect-ratio: 1340 / 380.23;
     container-type: inline-size;
