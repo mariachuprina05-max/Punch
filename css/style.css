@@ -3220,15 +3220,29 @@ html.has-noise .work__texture {
 }
 
 /* ==========================================================================
-   Pixel seam (js/pixel-seam.js): an empty band between two blocks (its height
-   is set by the script); it covers no content.
+   Pixel seam (js/pixel-seam.js): a transparent canvas at the top of the lower
+   block; the script sets --seam-h on that block, and the block's top padding
+   grows by it, so the band covers no content.
    ========================================================================== */
 .pixel-seam {
-  position: relative;
-  pointer-events: none;
-  line-height: 0;
-}
-.pixel-seam canvas {
-  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
+  z-index: 0;
+  pointer-events: none;
+  display: block;
 }
+.presvcs { padding-top: calc(4rem + var(--seam-h, 0px)); }
+.cta     { padding-top: calc(4rem + var(--seam-h, 0px)); }
+@media (min-width: 768px) {
+  .presvcs { padding-top: var(--seam-h, 0px); }
+  .cta { padding-top: calc(9.375rem + var(--seam-h, 0px)); }
+}
+@media (min-width: 768px) and (max-width: 1099.98px) {
+  .cta { padding-top: calc(150 * var(--dpx) + var(--seam-h, 0px)); }
+}
+
+/* the Approach block's bottom fade is a solid #121212 that hides the grain at its edge;
+   with the grain on, the pixel transition below it would show a step, so drop the fade */
+html.has-noise .approach__grad--bottom { display: none; }
