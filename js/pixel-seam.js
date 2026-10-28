@@ -18,9 +18,9 @@
 
    Markup (attributes on the lower block):
      data-pixel-from         colour of the block above (CSS colour or variable)
-     data-pixel-grid         columns on desktop (default 32; phones use half)
+     data-pixel-grid         columns on desktop (default 44; phones use half)
      data-pixel-randomness   0..1, share of random vs. top-down order (0.3)
-     data-pixel-height       band height as a share of the window height (0.3)
+     data-pixel-height       band height as a share of the window height (0.2)
 
    PixelSeam.mount({ targets: '[data-pixel-from]' }) -> { destroy() }
    ========================================================================== */
@@ -66,8 +66,8 @@
     function layout(it) {
       var h = it.host, vw = h.clientWidth || window.innerWidth, vh = window.innerHeight;
       var phone = window.innerWidth < 768;
-      var baseCols = parseFloat(h.getAttribute('data-pixel-grid')) || 32;
-      var share = parseFloat(h.getAttribute('data-pixel-height')) || 0.3;
+      var baseCols = parseFloat(h.getAttribute('data-pixel-grid')) || 44;
+      var share = parseFloat(h.getAttribute('data-pixel-height')) || 0.2;
       var randomness = clamp(parseFloat(h.getAttribute('data-pixel-randomness')), 0, 1);
       if (isNaN(randomness)) randomness = 0.3;
       it.color = resolveColor(h.getAttribute('data-pixel-from'));
@@ -80,6 +80,7 @@
       it.canvas.height = Math.round(it.H * it.dpr);
       it.canvas.style.height = it.H + 'px';
       h.style.setProperty('--seam-h', it.H + 'px');    /* the block's top padding makes room, nothing is covered */
+      stick(it);
       it.t = new Float32Array(it.cols * it.rows);
       it.keep = new Uint8Array(it.cols * it.rows);
       for (var r = 0; r < it.rows; r++) {
@@ -93,6 +94,13 @@
         }
       }
       it.last = -1;
+    }
+
+    /* a block taller than the window (it is sticky, the services cards slide over it) sticks by its
+       BOTTOM part, so its content is in view when it stops, not pushed below the fold */
+    function stick(it) {
+      var hh = it.host.offsetHeight;
+      it.host.style.setProperty('--stick-top', Math.min(0, window.innerHeight - hh) + 'px');
     }
 
     function draw(it, p) {
@@ -156,7 +164,7 @@
         window.removeEventListener('scroll', schedule);
         window.removeEventListener('resize', relayout);
         if (raf) cancelAnimationFrame(raf);
-        items.forEach(function (it) { it.host.style.removeProperty('--seam-h'); if (it.canvas.parentNode) it.canvas.parentNode.removeChild(it.canvas); });
+        items.forEach(function (it) { it.host.style.removeProperty('--seam-h'); it.host.style.removeProperty('--stick-top'); if (it.canvas.parentNode) it.canvas.parentNode.removeChild(it.canvas); });
       }
     };
   }

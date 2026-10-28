@@ -3233,7 +3233,7 @@ html.has-noise .work__texture {
   pointer-events: none;
   display: block;
 }
-.presvcs { padding-top: calc(4rem + var(--seam-h, 0px)); }
+.presvcs { padding-top: calc(4rem + var(--seam-h, 0px)); top: var(--stick-top, 0px); }
 .cta     { padding-top: calc(4rem + var(--seam-h, 0px)); }
 @media (min-width: 768px) {
   /* the blocks grow by the band's height, so their own content keeps its room */
