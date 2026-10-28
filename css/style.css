@@ -60,10 +60,15 @@
   --grid-gap: 1.25rem;                     /* 20px */
   --page-w: 90rem;                         /* 1440px */
   --grid-pad: max(var(--grid-margin), calc(50% - (var(--page-w) / 2 - var(--grid-margin))));
-  /* one design pixel of the 1440 frame, by width: display type is sized as
-     calc(N * var(--dpx)). Above 1440 it equals rem / 16 (so 1440 and 1920 are
-     unchanged); below, headings shrink with the page while text keeps its floor. */
-  --dpx: min(calc(100vw / 1440), 1.3333px);
+  /* How fast the layout grows past the 1440 frame, as a share of the width's
+     growth (1 = fully proportional, 0 = frozen at 1440). 0.4 keeps a 16" laptop
+     (~1728) at ~108 % of the design instead of 120 %. It stops growing at 1920. */
+  --grow: 0.4;
+  /* one design pixel of the 1440 frame: display type is sized as
+     calc(N * var(--dpx)). Below 1440 headings shrink with the width; above it
+     they grow by --grow (the root font-size follows the same curve, so
+     dpx = rem / 16 at every width from 1440 up). */
+  --dpx: min(calc(100vw / 1440), calc(1px + (min(100vw, 1920px) - 1440px) * var(--grow) / 1440));
   --page-offset: max(0px, calc(50% - var(--page-w) / 2));   /* free space on each side beyond the page column */
 
   /* Single brand motion curve — same 4 control points as the GSAP
@@ -90,12 +95,12 @@ html { -webkit-text-size-adjust: 100%; }
 
 /* --------------------------------------------------------------------------
    Fluid root: every rem on the desktop layout follows this value.
-     1440 -> 1920 : 100vw / 90, exactly proportional to the Figma frame
-                    (16px -> 21.33px)
+     1440 -> 1920 : 16px -> ~18.1px (grows by --grow = 40 % of the width's
+                    growth, not 1:1, so big screens do not feel oversized)
      768 -> 1440  : slides 13.5 -> 16px, slower than the width, so text
                     never drops much below the Figma sizes (--dpx scales the
                     big display type with the width instead, see :root)
-     beyond 1920  : stops at 21.33px; the page stays centred (--grid-pad)
+     beyond 1920  : stops at ~18.1px; the page stays centred (--grid-pad)
    Media queries below are in px on purpose: they do not depend on the root.
    -------------------------------------------------------------------------- */
 /* Mobile: 16px at 375 (the Figma frame), proportional from 320 up to 480 */
@@ -104,9 +109,12 @@ html { -webkit-text-size-adjust: 100%; }
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: min(21.3333px, max(calc(100vw / 90), calc(13.5px + (100vw - 768px) * 0.0037202)));
-  }
+  html { font-size: calc(13.5px + (100vw - 768px) * 0.0037202); }   /* 13.5px @768 -> 16px @1440 */
+}
+
+/* From the 1440 frame up the page grows by --grow of the width's growth, until 1920 */
+@media (min-width: 1440px) {
+  html { font-size: calc(16px + (min(100vw, 1920px) - 1440px) * 16 * var(--grow) / 1440); }
 }
 
 body {

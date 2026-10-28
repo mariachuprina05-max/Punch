@@ -91,7 +91,7 @@
       var r = host.getBoundingClientRect();
       W = Math.max(1, Math.round(r.width)); H = Math.max(1, Math.round(r.height));
       dpr = Math.min(window.devicePixelRatio || 1, 2);
-      U = W >= 768 ? Math.min(W, 1920) / 1440 : 1;
+      U = W >= 768 ? (window.PunchLayout ? PunchLayout.dpx(W) : Math.min(W, 1920) / 1440) : 1;
       canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
       /* a little coarser than the preloader wall's pitch: ~17px at 1440x810, ~10px on phones */
       cell = Math.max(9, Math.round(Math.sqrt(W * H / 3800)));

@@ -225,7 +225,7 @@
     function layout() {
       W = heroEl.clientWidth; H = heroEl.clientHeight;
       active = window.innerWidth >= HERO_MIN_W;
-      U = Math.min(W, 1920) / 1440;
+      U = window.PunchLayout ? PunchLayout.dpx(W) : Math.min(W, 1920) / 1440;
       canvas.style.display = active ? '' : 'none';
       if (!active) return;
       ctx = setupCanvas(canvas, W, H);
