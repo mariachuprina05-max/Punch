@@ -3236,11 +3236,12 @@ html.has-noise .work__texture {
 .presvcs { padding-top: calc(4rem + var(--seam-h, 0px)); }
 .cta     { padding-top: calc(4rem + var(--seam-h, 0px)); }
 @media (min-width: 768px) {
-  .presvcs { padding-top: var(--seam-h, 0px); }
-  .cta { padding-top: calc(9.375rem + var(--seam-h, 0px)); }
+  /* the blocks grow by the band's height, so their own content keeps its room */
+  .presvcs { padding-top: var(--seam-h, 0px); min-height: calc(56.25rem + var(--seam-h, 0px)); }
+  .cta { padding-top: calc(9.375rem + var(--seam-h, 0px)); min-height: calc(56.25rem + var(--seam-h, 0px)); }
 }
 @media (min-width: 768px) and (max-width: 1099.98px) {
-  .cta { padding-top: calc(150 * var(--dpx) + var(--seam-h, 0px)); }
+  .cta { padding-top: calc(150 * var(--dpx) + var(--seam-h, 0px)); min-height: calc(900 * var(--dpx) + var(--seam-h, 0px)); }
 }
 
 /* the Approach block's bottom fade is a solid #121212 that hides the grain at its edge;
