@@ -523,6 +523,7 @@
     </div>
   </div>
 </section>
+<div class="process-runway" id="processRunway" aria-hidden="true"></div>
 
 <!-- ==========================================================================
      Block 09: CTA Form
@@ -892,6 +893,7 @@
   var intro = section.querySelector('.process__intro');
   var outro = section.querySelector('.process__outro');
   var fan = document.getElementById('processFan');
+  var runway = document.getElementById('processRunway');
   var N = slots.length;   // driven by markup, not hardcoded
 
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -900,6 +902,8 @@
     /* reduced motion / no GSAP: the cards sit in their final fanned position
        and the strip is a plain horizontally scrollable row */
     section.querySelector('.process__fan-wrap').style.overflowX = 'auto';
+    runway.style.display = 'none';       /* nothing to scroll through */
+    section.style.position = 'relative';
     return;
   }
 
@@ -923,18 +927,20 @@
     };
   }
 
-  function addSteps(tl, unit, margin, capByLeft, onLast) {
+  function addSteps(tl, unit, margin, capByLeft, onLast, firstStays) {
     slots.forEach(function (slot, i) {
+      if (firstStays && i === 0) return;   /* phones: the first card is simply there */
       var finalRotate = parseFloat(slot.dataset.rotate);
-      var pos = i * unit;
+      var pos = (firstStays ? i - 1 : i) * unit;
       tl.to(slot, { x: 0, rotate: finalRotate, opacity: 1, ease: EASE, duration: unit * 0.8 }, pos);
       tl.to(fan, { x: panFor(slot, margin, capByLeft), ease: EASE, duration: unit * 0.8 }, pos);
       if (i === N - 1 && onLast) onLast(pos, unit * 0.8);
     });
   }
 
-  function hideSlots() {
-    slots.forEach(function (slot) {
+  function hideSlots(keepFirst) {
+    slots.forEach(function (slot, i) {
+      if (keepFirst && i === 0) return;
       gsap.set(slot, { x: window.innerWidth, rotate: parseFloat(slot.dataset.rotate) + 8, opacity: 0, willChange: 'transform, opacity' });
     });
   }
@@ -944,7 +950,7 @@
   var mm = gsap.matchMedia();
 
   mm.add('(min-width: 768px)', function () {
-    var UNIT = 5.2 / N;                     /* ~5.2 * 100vh of pinned scroll for N=5 */
+    var UNIT = 3.6 / N;                     /* matches .process-runway: 3.6 screens in all */
 
     gsap.set([intro, outro], { xPercent: 100, opacity: 0, willChange: 'transform, opacity' });
     hideSlots();
@@ -959,9 +965,9 @@
     var tl = gsap.timeline({
       scrollTrigger: {
         trigger: section,
-        start: 'top top',
-        end: '+=' + Math.round(window.innerHeight * N * UNIT),
-        pin: true,
+        trigger: runway,
+        start: 'top bottom',                /* the Process block is stuck from here ... */
+        end: 'bottom bottom',               /* ... until the CTA starts to slide over it */
         scrub: 1,
         invalidateOnRefresh: true
       }
@@ -975,20 +981,19 @@
     /* phones: the section is pinned full-screen while the cards come in one by one */
     var wrap = section.querySelector('.process__fan-wrap');
     wrap.style.overflowX = 'hidden';
-    hideSlots();
+    hideSlots(true);
 
-    var UNIT = 0.9;
+    var UNIT = 2.75 / (N - 1);              /* matches .process-runway (the first card needs no step) */
     var tl = gsap.timeline({
       scrollTrigger: {
-        trigger: section,
-        start: 'top top',
-        end: '+=' + Math.round(window.innerHeight * N * UNIT),
-        pin: true,
+        trigger: runway,
+        start: 'top bottom',
+        end: 'bottom bottom',
         scrub: 1,
         invalidateOnRefresh: true
       }
     });
-    addSteps(tl, UNIT, function () { return rootPx() * 1.5; }, false);
+    addSteps(tl, UNIT, function () { return rootPx() * 1.5; }, false, null, true);
 
     return function () { wrap.style.overflowX = ''; };
   });

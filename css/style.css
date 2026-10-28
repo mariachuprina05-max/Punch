@@ -2044,15 +2044,23 @@ img, svg { display: block; max-width: 100%; }
    Desktop Figma node 8119:34713 (1440 × 829)
    ========================================================================== */
 .process {
-  position: relative;
+  /* stuck to the top while its runway scrolls by; the CTA below then slides up
+     over it, the same pattern as Hero and About */
+  position: sticky;
+  top: 0;
+  z-index: 0;
   overflow: hidden;
-  height: auto;   /* desktop turns this into a 100svh scroll-jacked pin */
+  height: 100svh;
   display: flex;
   align-items: center;
   background: var(--c-bg);
   color: var(--c-white);
   border-radius: 1.875rem 1.875rem 0 0;   /* 30px, mobile */
 }
+
+/* scroll length of the card animation; the Process block stays stuck on top of it */
+.process-runway { height: calc(2.75 * 100svh); }
+@media (min-width: 768px) { .process-runway { height: calc(3.6 * 100svh); } }
 
 .process__texture {
   position: absolute;
@@ -2322,6 +2330,7 @@ img, svg { display: block; max-width: 100%; }
    ========================================================================== */
 .cta2 {
   position: relative;
+  z-index: 1;   /* slides up over the stuck Process block */
   overflow: hidden;
   background: var(--c-brand);
   color: var(--c-black);
@@ -3165,8 +3174,8 @@ html.has-noise .work__texture {
 
   /* Process: every card is already out; the strip is panned by the scroll
      (see the Process script). Cards are wide, about two fit the screen. */
-  .process__fan-wrap { overflow: hidden; }
-  .process { min-height: 100svh; }   /* pinned: fills the screen, so nothing shows through behind it */
+  /* room above and below so the rotated cards and their shadows are not clipped */
+  .process__fan-wrap { overflow: hidden; padding-block: 1.5rem; margin-block: -1.5rem; }
 
   /* Form: the frame left-aligns the field text */
   .cta2__input { text-align: left; }
