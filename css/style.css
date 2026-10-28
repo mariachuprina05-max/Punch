@@ -3219,3 +3219,21 @@ html.has-noise .work__texture {
   .approach__card { width: 100%; }
 }
 
+/* ==========================================================================
+   Pixel seam (js/pixel-seam.js): a zero-height element between two blocks; its
+   canvas hangs upward over the end of the previous block.
+   ========================================================================== */
+.pixel-seam {
+  position: relative;
+  height: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+.pixel-seam canvas {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  display: block;
+  pointer-events: none;
+}
