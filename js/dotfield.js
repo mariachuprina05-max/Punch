@@ -187,10 +187,14 @@
       poly(sols, 'fill');
     }
 
+    /* phones: the field is a slow background, 24 fps is plenty and keeps
+       scroll animations on top of it smooth */
+    var lowPower = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
+    var lastDraw = 0;
     function loop(ms) {
       raf = 0;
       if (!alive || !visible) return;
-      draw(ms);
+      if (!lowPower || ms - lastDraw >= 41) { lastDraw = ms; draw(ms); }
       if (!reduceMotion) raf = requestAnimationFrame(loop);
     }
     function wake() { if (!raf && visible) raf = requestAnimationFrame(loop); }

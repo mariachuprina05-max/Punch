@@ -3006,6 +3006,25 @@ html.no-scroll body { overflow: hidden; height: 100%; }
   border-radius: inherit;
   pointer-events: none;
 }
+
+/* touch screens: the grain is one small tile used as a plain CSS background,
+   nudged around by the compositor (no canvas, no repaint). The tile layer is
+   12px larger than the block on every side; .noise-layer clips it. */
+.noise-tile {
+  position: absolute;
+  inset: -12px;
+  image-rendering: pixelated;
+  will-change: transform;
+  animation: grain-nudge 0.5s steps(1) infinite;
+}
+@keyframes grain-nudge {
+  0%   { transform: translate(0, 0); }
+  20%  { transform: translate(-7px, 4px); }
+  40%  { transform: translate(5px, -9px); }
+  60%  { transform: translate(-3px, -5px); }
+  80%  { transform: translate(8px, 7px); }
+}
+@media (prefers-reduced-motion: reduce) { .noise-tile { animation: none; } }
 .noise-layer canvas {
   display: block;
   width: 100%;

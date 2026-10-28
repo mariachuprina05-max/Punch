@@ -30,6 +30,11 @@
     }, options || {});
 
     var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    /* touch screens: the grain is painted once and then only nudged around by CSS
+       (transform, no JS, no repaint) - redrawing full-screen canvases every few
+       frames made scroll animations on phones stutter */
+    var still = window.matchMedia('(pointer: coarse)').matches;
+    var BLEED = 12;   /* the layer is a little bigger than its block so the nudging never shows an edge */
     var size = Math.max(8, Math.round(o.patternSize));
 
     /* one random tile, shared by every layer */
@@ -50,13 +55,21 @@
     }
 
     /* ---- one layer (a canvas behind the content) per target block ------- */
-    var layers = [];
+    var layers = [], stills = [];
     o.targets.forEach(function (selector) {
       document.querySelectorAll(selector).forEach(function (host) {
         if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
         var layer = document.createElement('div');
-        layer.className = 'noise-layer';
+        layer.className = 'noise-layer' + (still ? ' noise-layer--still' : '');
         layer.setAttribute('aria-hidden', 'true');
+        if (still) {
+          var tileEl = document.createElement('div');
+          tileEl.className = 'noise-tile';
+          layer.appendChild(tileEl);
+          host.insertBefore(layer, host.firstChild);
+          stills.push(tileEl);
+          return;
+        }
         var canvas = document.createElement('canvas');
         layer.appendChild(canvas);
         host.insertBefore(layer, host.firstChild);
@@ -65,12 +78,25 @@
         layers.push({ host: host, layer: layer, canvas: canvas, ctx: ctx, visible: false, dirty: true });
       });
     });
+    if (still && stills.length) {
+      /* one random tile, used as a plain CSS background by every layer: a
+         single small texture instead of a full-size canvas per block */
+      refreshTile();
+      var url = tile.toDataURL('image/png');
+      var px = Math.round(size * o.patternScaleX) + 'px ' + Math.round(size * o.patternScaleY) + 'px';
+      stills.forEach(function (el) { el.style.backgroundImage = 'url(' + url + ')'; el.style.backgroundSize = px; });
+      document.documentElement.classList.add('has-noise');
+      return { destroy: function () {
+        stills.forEach(function (el) { if (el.parentNode && el.parentNode.parentNode) el.parentNode.parentNode.removeChild(el.parentNode); });
+        document.documentElement.classList.remove('has-noise');
+      } };
+    }
     if (!layers.length) return null;
     document.documentElement.classList.add('has-noise');
 
     function fit(l) {
       var r = l.host.getBoundingClientRect();
-      var w = Math.max(1, Math.round(r.width)), h = Math.max(1, Math.round(r.height));
+      var w = Math.max(1, Math.round(r.width)) + (still ? BLEED * 2 : 0), h = Math.max(1, Math.round(r.height)) + (still ? BLEED * 2 : 0);
       if (l.canvas.width !== w || l.canvas.height !== h) {
         l.canvas.width = w; l.canvas.height = h;   /* css px: one grain pixel = one css pixel */
         l.dirty = true;
@@ -94,8 +120,10 @@
     }
 
     var frame = 0, raf = 0, alive = true;
+    function paintStill() { refreshTile(); layers.forEach(function (l) { if (l.dirty) paint(l); }); }
     function loop() {
       raf = 0;
+      if (still) { paintStill(); return; }
       if (!alive || !anyVisible()) return;       /* idle until something scrolls into view */
       if (frame % Math.max(1, o.patternRefreshInterval) === 0) {
         refreshTile();
